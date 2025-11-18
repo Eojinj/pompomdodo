@@ -6,12 +6,12 @@
 
 body {
     font-family: 'Arial', sans-serif;
-    background: linear-gradient(to bottom, #87CEEB, #98D8C8);
+    background: linear-gradient(to bottom, #006994, #1e88e5, #4fc3f7);
     height: 100vh;
     overflow: hidden;
 }
 
-/* ============ 시작 화면 ============ */
+/* ============ ì‹œìž‘ í™”ë©´ ============ */
 #startScreen {
     display: flex;
     flex-direction: column;
@@ -29,12 +29,13 @@ body {
 }
 
 .start-options {
-    background: white;
+    background: rgba(255, 255, 255, 0.95);
     padding: 40px;
     border-radius: 20px;
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
     max-width: 500px;
     width: 100%;
+    backdrop-filter: blur(10px);
 }
 
 .option-group {
@@ -58,7 +59,7 @@ body {
 }
 
 .nickname-input:focus {
-    border-color: #4CAF50;
+    border-color: #00ACC1;
 }
 
 .nickname-input::placeholder {
@@ -85,13 +86,13 @@ body {
 }
 
 .option-btn:hover {
-    border-color: #4CAF50;
+    border-color: #00ACC1;
     transform: translateY(-2px);
 }
 
 .option-btn.selected {
-    border-color: #4CAF50;
-    background: #e8f5e9;
+    border-color: #00ACC1;
+    background: #e0f7fa;
     font-weight: bold;
 }
 
@@ -100,7 +101,7 @@ body {
     padding: 18px;
     font-size: 20px;
     font-weight: bold;
-    background: #4CAF50;
+    background: #00ACC1;
     color: white;
     border: none;
     border-radius: 10px;
@@ -110,11 +111,11 @@ body {
 }
 
 .start-button:hover {
-    background: #45a049;
+    background: #0097A7;
     transform: scale(1.02);
 }
 
-/* ============ 메인 게임 화면 ============ */
+/* ============ ë©”ì¸ ê²Œìž„ í™”ë©´ ============ */
 #gameScreen {
     display: none;
     height: 100vh;
@@ -123,12 +124,11 @@ body {
 }
 
 .top-bar {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 15px 20px;
+    background: transparent;
+    padding: 20px 30px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     z-index: 10;
 }
 
@@ -139,25 +139,29 @@ body {
 }
 
 .timer-display {
-    font-size: 36px;
-    font-weight: bold;
-    color: #FF6B6B;
+    font-size: 48px;
+    font-weight: 900;
+    color: white;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
 }
 
 .timer-label {
-    font-size: 16px;
-    color: #666;
+    font-size: 18px;
+    color: white;
+    font-weight: 700;
     display: flex;
     align-items: center;
     gap: 8px;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
 }
 
 .status-indicator {
     display: inline-block;
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     animation: pulse 2s infinite;
+    box-shadow: 0 0 8px rgba(255,255,255,0.5);
 }
 
 .status-working {
@@ -165,7 +169,7 @@ body {
 }
 
 .status-breaking {
-    background: #4CAF50;
+    background: #00ACC1;
 }
 
 @keyframes pulse {
@@ -176,8 +180,30 @@ body {
 .info-section {
     display: flex;
     gap: 20px;
-    font-size: 14px;
-    color: #666;
+    font-size: 15px;
+    color: white;
+    font-weight: 600;
+    align-items: center;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+}
+
+.settings-toggle-top {
+    padding: 10px 18px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 22px;
+    transition: all 0.3s;
+    margin-left: 15px;
+    backdrop-filter: blur(10px);
+}
+
+.settings-toggle-top:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: scale(1.05);
 }
 
 .main-content {
@@ -202,7 +228,7 @@ body {
 }
 
 #field {
-    background: #7EC850;
+    background: linear-gradient(to bottom, #006994, #0288d1);
     border-radius: 15px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     max-width: 1400px;
@@ -210,74 +236,66 @@ body {
 }
 
 .character-controls {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 15px 20px;
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    flex-wrap: wrap;
-    z-index: 10;
+    display: none;
 }
 
-.settings-toggle {
-    padding: 10px 20px;
-    background: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    transition: all 0.3s;
-}
 
-.settings-toggle:hover {
-    background: #45a049;
-    transform: translateY(-2px);
-}
-
-/* ============ 설정 패널 (서랍식) ============ */
+/* ============ 설정 패널 (중앙 박스) ============ */
 .settings-panel {
     position: fixed;
-    bottom: -400px;
-    left: 0;
-    right: 0;
-    height: 400px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
     background: white;
-    box-shadow: 0 -4px 10px rgba(0,0,0,0.2);
-    transition: bottom 0.3s ease;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    border-radius: 20px;
     display: flex;
     flex-direction: column;
     z-index: 2000;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .settings-panel.open {
-    bottom: 0;
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
 }
 
 .settings-header {
-    padding: 20px;
-    background: #4CAF50;
+    padding: 25px 30px;
+    background: linear-gradient(135deg, #00ACC1, #0097A7);
     color: white;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-radius: 20px 20px 0 0;
 }
 
 .close-settings {
-    background: none;
+    background: rgba(255, 255, 255, 0.2);
     border: none;
     color: white;
-    font-size: 24px;
+    font-size: 28px;
     cursor: pointer;
     padding: 0;
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+    line-height: 1;
+}
+
+.close-settings:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
 }
 
 .settings-content {
@@ -314,7 +332,7 @@ body {
 }
 
 .setting-input:focus {
-    border-color: #4CAF50;
+    border-color: #00ACC1;
 }
 
 .setting-select {
@@ -328,7 +346,7 @@ body {
 
 .setting-btn {
     padding: 10px 20px;
-    background: #4CAF50;
+    background: #00ACC1;
     color: white;
     border: none;
     border-radius: 8px;
@@ -339,14 +357,13 @@ body {
 }
 
 .setting-btn:hover {
-    background: #45a049;
+    background: #0097A7;
 }
 
 #currentNickname {
-    color: #4CAF50;
+    color: #00ACC1;
     font-weight: bold;
 }
-
 
 .color-picker {
     display: flex;
@@ -370,7 +387,7 @@ body {
     border-color: #333;
 }
 
-/* ============ 채팅 패널 ============ */
+/* ============ ì±„íŒ… íŒ¨ë„ ============ */
 .chat-panel {
     position: fixed;
     right: -350px;
@@ -416,7 +433,7 @@ body {
 
 .chat-header {
     padding: 20px;
-    background: #4CAF50;
+    background: #00ACC1;
     color: white;
     font-size: 18px;
     font-weight: bold;
@@ -470,7 +487,7 @@ body {
 }
 
 .message.own .message-content {
-    background: #4CAF50;
+    background: #00ACC1;
     color: white;
     align-self: flex-end;
 }
@@ -501,11 +518,11 @@ body {
 }
 
 .chat-input:focus {
-    border-color: #4CAF50;
+    border-color: #00ACC1;
 }
 
 .chat-send {
-    background: #4CAF50;
+    background: #00ACC1;
     color: white;
     border: none;
     width: 45px;
@@ -520,7 +537,7 @@ body {
 }
 
 .chat-send:hover {
-    background: #45a049;
+    background: #0097A7;
     transform: scale(1.05);
 }
 
@@ -530,4 +547,278 @@ body {
     font-size: 12px;
     padding: 10px;
     font-style: italic;
+}
+
+/* ============ 메모 기능 ============ */
+.memo-textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Arial', sans-serif;
+    outline: none;
+    resize: vertical;
+    min-height: 100px;
+    transition: border-color 0.3s;
+}
+
+.memo-textarea:focus {
+    border-color: #00ACC1;
+}
+
+.memo-info {
+    font-size: 12px;
+    color: #00ACC1;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.memo-notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    width: 90%;
+    max-width: 450px;
+    z-index: 3000;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.memo-notification.show {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+}
+
+.memo-notification-header {
+    padding: 20px;
+    background: #00ACC1;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 15px 15px 0 0;
+}
+
+.close-memo-notification {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+}
+
+.close-memo-notification:hover {
+    transform: rotate(90deg);
+}
+
+.memo-notification-content {
+    padding: 30px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333;
+    white-space: pre-wrap;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.memo-notification-content:empty::before {
+    content: "메모가 없습니다";
+    color: #999;
+    font-style: italic;
+}
+
+/* 메모 알림 배경 오버레이 */
+.memo-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.memo-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+/* 설정 패널 배경 오버레이 */
+.settings-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(3px);
+}
+
+.settings-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ============ 메모 버튼 및 패널 ============ */
+.memo-toggle {
+    position: fixed;
+    right: 10px;
+    bottom: 20px;
+    background: white;
+    border: none;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    cursor: pointer;
+    font-size: 28px;
+    transition: all 0.3s;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.memo-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+}
+
+.memo-toggle:active {
+    transform: scale(0.95);
+}
+
+.memo-panel {
+    position: fixed;
+    right: -400px;
+    bottom: 0;
+    width: 400px;
+    height: 500px;
+    background: white;
+    border-radius: 20px 0 0 0;
+    box-shadow: -4px -4px 20px rgba(0,0,0,0.3);
+    transition: right 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    z-index: 1501;
+}
+
+.memo-panel.open {
+    right: 0;
+}
+
+.memo-header {
+    padding: 20px 25px;
+    background: linear-gradient(135deg, #00ACC1, #0097A7);
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 20px 0 0 0;
+}
+
+.close-memo {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 32px;
+    cursor: pointer;
+    padding: 0;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+    line-height: 1;
+}
+
+.close-memo:hover {
+    transform: rotate(90deg) scale(1.1);
+}
+
+.memo-content {
+    flex: 1;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow: hidden;
+}
+
+.memo-textarea {
+    flex: 1;
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: 'Arial', sans-serif;
+    outline: none;
+    resize: none;
+    transition: all 0.3s;
+    line-height: 1.6;
+}
+
+.memo-textarea:focus {
+    border-color: #00ACC1;
+    box-shadow: 0 0 0 3px rgba(0, 172, 193, 0.1);
+}
+
+.memo-textarea::placeholder {
+    color: #bbb;
+}
+
+.memo-info {
+    font-size: 13px;
+    color: #00ACC1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 15px;
+    background: rgba(0, 172, 193, 0.05);
+    border-radius: 8px;
+    border-left: 3px solid #00ACC1;
+}
+
+/* 메모 패널 배경 오버레이 */
+.memo-panel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.memo-panel-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
 }
