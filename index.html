@@ -9,7 +9,7 @@
 <body>
     <!-- 시작 화면 -->
     <div id="startScreen">
-        <h1>🐰 폼폼도도</h1>
+        <h1>🐠 폼폼도도</h1>
         
         <div class="start-options">
             <div class="option-group">
@@ -68,72 +68,21 @@
             <div class="timer-section">
                 <div class="timer-label">
                     <span class="status-indicator status-working" id="statusIndicator"></span>
-                    <span id="statusText">작업 시간</span>
+                    <span id="statusText">작업 중</span>
                 </div>
                 <div class="timer-display" id="timerDisplay">25:00</div>
             </div>
             
             <div class="info-section">
-                <div id="currentTime">현재 시간: --:--:--</div>
-                <div id="nextBreak">다음 휴식: --:--</div>
-                <div>접속자: <span id="onlineCount">1</span>명</div>
+                <div id="nextBreak">--:--</div>
+                <div><span id="onlineCount">1</span>명</div>
+                <button class="settings-toggle-top" onclick="toggleSettings()">⚙️</button>
             </div>
         </div>
 
         <div class="main-content">
             <div class="field-container" id="fieldContainer">
                 <canvas id="field"></canvas>
-            </div>
-        </div>
-
-        <div class="character-controls">
-            <button class="settings-toggle" onclick="toggleSettings()">⚙️ 설정</button>
-        </div>
-
-        <!-- 설정 패널 (서랍식) -->
-        <div class="settings-panel" id="settingsPanel">
-            <div class="settings-header">
-                <span>설정</span>
-                <button class="close-settings" onclick="toggleSettings()">×</button>
-            </div>
-            
-            <div class="settings-content">
-                <div class="setting-group">
-                    <label>닉네임</label>
-                    <input 
-                        type="text" 
-                        id="nicknameChange" 
-                        class="setting-input" 
-                        placeholder="닉네임을 입력하세요"
-                        maxlength="12"
-                    >
-                    <button class="setting-btn" onclick="changeNickname()">변경</button>
-                </div>
-
-                <div class="setting-group">
-                    <label>캐릭터 선택</label>
-                    <select id="characterSelect" class="setting-select">
-                        <option value="rabbit">토끼 🐰</option>
-                        <option value="cat">고양이 🐱</option>
-                        <option value="dog">강아지 🐶</option>
-                        <option value="bear">곰 🐻</option>
-                    </select>
-                </div>
-
-                <div class="setting-group">
-                    <label>색상 선택</label>
-                    <div class="color-picker">
-                        <div class="color-option selected" style="background: #FFB6C1;" data-color="#FFB6C1"></div>
-                        <div class="color-option" style="background: #87CEEB;" data-color="#87CEEB"></div>
-                        <div class="color-option" style="background: #98FB98;" data-color="#98FB98"></div>
-                        <div class="color-option" style="background: #FFD700;" data-color="#FFD700"></div>
-                        <div class="color-option" style="background: #DDA0DD;" data-color="#DDA0DD"></div>
-                    </div>
-                </div>
-
-                <div class="setting-group">
-                    <label>현재 닉네임: <span id="currentNickname"></span></label>
-                </div>
             </div>
         </div>
 
@@ -160,6 +109,89 @@
                     onkeypress="handleChatKeypress(event)"
                 >
                 <button class="chat-send" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+
+        <!-- 설정 패널 (서랍식) -->
+        <div class="settings-overlay" id="settingsOverlay" onclick="toggleSettings()"></div>
+        <div class="settings-panel" id="settingsPanel">
+            <div class="settings-header">
+                <span>설정</span>
+                <button class="close-settings" onclick="toggleSettings()">×</button>
+            </div>
+            
+            <div class="settings-content">
+                <div class="setting-group">
+                    <label>닉네임</label>
+                    <input 
+                        type="text" 
+                        id="nicknameChange" 
+                        class="setting-input" 
+                        placeholder="닉네임을 입력하세요"
+                        maxlength="12"
+                    >
+                    <button class="setting-btn" onclick="changeNickname()">변경</button>
+                </div>
+
+                <div class="setting-group">
+                    <label>캐릭터 선택</label>
+                    <select id="characterSelect" class="setting-select">
+                        <option value="fish">물고기 🐠</option>
+                        <option value="octopus">문어 🐙</option>
+                        <option value="turtle">거북이 🐢</option>
+                        <option value="whale">고래 🐋</option>
+                        <option value="dolphin">돌고래 🐬</option>
+                        <option value="crab">게 🦀</option>
+                    </select>
+                </div>
+
+                <div class="setting-group">
+                    <label>색상 선택</label>
+                    <div class="color-picker">
+                        <div class="color-option selected" style="background: #4DD0E1;" data-color="#4DD0E1"></div>
+                        <div class="color-option" style="background: #80DEEA;" data-color="#80DEEA"></div>
+                        <div class="color-option" style="background: #26C6DA;" data-color="#26C6DA"></div>
+                        <div class="color-option" style="background: #00ACC1;" data-color="#00ACC1"></div>
+                        <div class="color-option" style="background: #0097A7;" data-color="#0097A7"></div>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <label>현재 닉네임: <span id="currentNickname"></span></label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 메모 버튼 (우측 하단) -->
+        <button class="memo-toggle" id="memoToggle" onclick="toggleMemo()">📝</button>
+
+        <!-- 메모 패널 오버레이 -->
+        <div class="memo-panel-overlay" id="memoPanelOverlay" onclick="toggleMemo()"></div>
+
+        <!-- 메모 패널 -->
+        <div class="memo-panel" id="memoPanel">
+            <div class="memo-header">
+                <span>📝 쉬는 시간 메모</span>
+                <button class="close-memo" onclick="toggleMemo()">×</button>
+            </div>
+            <div class="memo-content">
+                <textarea 
+                    id="breakMemo" 
+                    class="memo-textarea" 
+                    placeholder="쉬는 시간에 할 일을 적어보세요...&#10;&#10;예시:&#10;• 스트레칭하기&#10;• 물 마시기&#10;• 간식 먹기&#10;• 눈 운동하기"
+                ></textarea>
+                <div class="memo-info">💡 쉬는 시간이 되면 자동으로 표시됩니다</div>
+            </div>
+        </div>
+
+        <!-- 메모 알림 패널 -->
+        <div class="memo-notification" id="memoNotification">
+            <div class="memo-notification-header">
+                <span>🔔 쉬는 시간 메모</span>
+                <button class="close-memo-notification" onclick="closeMemoNotification()">×</button>
+            </div>
+            <div class="memo-notification-content" id="memoNotificationContent">
+                메모가 없습니다
             </div>
         </div>
     </div>
