@@ -10,13 +10,19 @@ let chatOpen = false;
 let settingsOpen = false;
 let userName = '익명' + Math.floor(Math.random() * 1000);
 
+// 메모 관련
+let memoOpen = false;
+let breakMemo = '';
+let lastStatus = null; // 이전 상태 추적용
+let memoNotificationShown = false;
+
 // 캔버스 관련
 const canvas = document.getElementById('field');
 const ctx = canvas.getContext('2d');
 
 // 사용자 설정
-let userCharacter = '🐰';
-let userColor = '#FFB6C1';
+let userCharacter = '🐠';
+let userColor = '#4DD0E1';
 
 // 캐릭터 배열
 let characters = [];
@@ -32,130 +38,84 @@ class Character {
         this.size = 40;
         this.isSleeping = false;
         
-        // 폴짝폴짝 모션 관련
-        this.state = 'waiting'; // 'waiting', 'bouncing', 'moving'
-        this.bounceCount = 0;
-        this.maxBounces = 3; // 좌/우로 3번 콩콩콩
-        this.bounceFrame = 0;
-        this.bounceHeight = 0;
-        this.bounceDirection = 1; // 1: 오른쪽, -1: 왼쪽
-        this.bounceDistance = 25; // 한 번 뛸 때 좌우 이동 거리
-        this.targetX = this.x;
-        this.targetY = this.y;
-        this.moveSpeed = 1.5; // 이동 속도 (더 느리게)
-        this.waitTime = 0;
-        this.waitDuration = 150; // 대기 시간 (2.5초)
+        // 자연스러운 헤엄치기
+        this.angle = Math.random() * Math.PI * 2; // 이동 방향
+        this.speed = 0.8; // 느린 속도
+        this.turnSpeed = 0.03; // 방향 전환 속도
+        this.targetAngle = this.angle;
+        
+        // 물결 효과
+        this.waveOffset = Math.random() * Math.PI * 2;
+        this.waveSpeed = 0.05;
+        this.waveAmplitude = 3;
+        
+        // 방향 전환 타이머
+        this.changeDirectionTimer = Math.floor(Math.random() * 180) + 120; // 2-5초마다
     }
 
     update() {
         if (this.isSleeping) return;
 
-        if (this.state === 'waiting') {
-            this.waitTime++;
-            if (this.waitTime >= this.waitDuration) {
-                this.startBouncing();
-            }
-        } else if (this.state === 'bouncing') {
-            this.performBounce();
-        } else if (this.state === 'moving') {
-            this.performMove();
+        // 일정 시간마다 새로운 방향 선택
+        this.changeDirectionTimer--;
+        if (this.changeDirectionTimer <= 0) {
+            this.targetAngle = Math.random() * Math.PI * 2;
+            this.changeDirectionTimer = Math.floor(Math.random() * 180) + 120;
         }
-    }
 
-    startBouncing() {
-        this.state = 'bouncing';
-        this.bounceCount = 0;
-        this.bounceFrame = 0;
-        this.waitTime = 0;
+        // 부드럽게 목표 방향으로 회전
+        let angleDiff = this.targetAngle - this.angle;
         
-        // 랜덤하게 좌/우 방향 결정
-        this.bounceDirection = Math.random() > 0.5 ? 1 : -1;
-        this.bounceDistance = Math.floor(Math.random() * 20) + 20; // 20-40px
-    }
+        // 각도 차이를 -π ~ π 범위로 정규화
+        while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+        while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+        
+        this.angle += angleDiff * this.turnSpeed;
 
-    performBounce() {
-        // 좌/우로 콩콩콩 뛰기
-        this.bounceFrame++;
+        // 이동
+        const vx = Math.cos(this.angle) * this.speed;
+        const vy = Math.sin(this.angle) * this.speed;
         
-        // 사인파로 부드러운 점프 효과 (더 느리게)
-        const bounceSpeed = 0.15; // 속도 (더 느리게)
-        this.bounceHeight = Math.sin(this.bounceFrame * bounceSpeed) * 20;
-        
-        // 한 번의 바운스 완료 (사인파 한 주기)
-        if (this.bounceFrame * bounceSpeed >= Math.PI) {
-            // 좌/우로 한 칸 이동
-            this.x += this.bounceDirection * this.bounceDistance;
-            
-            // 벽 충돌 체크
-            if (this.x < 0) {
-                this.x = 0;
-                this.bounceDirection *= -1; // 방향 반대로
-            }
-            if (this.x > canvas.width - this.size) {
-                this.x = canvas.width - this.size;
-                this.bounceDirection *= -1; // 방향 반대로
-            }
-            
-            this.bounceFrame = 0;
-            this.bounceHeight = 0;
-            this.bounceCount++;
-            
-            // 3번 콩콩콩 완료
-            if (this.bounceCount >= this.maxBounces) {
-                this.startMoving();
-            }
+        this.x += vx;
+        this.y += vy;
+
+        // 벽에 닿으면 부드럽게 방향 전환 (튕기지 않고)
+        if (this.x < 20) {
+            this.targetAngle = 0; // 오른쪽으로
+            this.x = 20;
         }
-    }
-
-    startMoving() {
-        this.state = 'moving';
-        
-        // 랜덤한 방향 결정 (상하 위주)
-        const directions = ['up', 'down', 'up', 'down', 'stay']; // 상하 확률 높임
-        const direction = directions[Math.floor(Math.random() * directions.length)];
-        
-        const distance = Math.floor(Math.random() * 60) + 30; // 30-90px
-        
-        switch(direction) {
-            case 'up':
-                this.targetY = this.y - distance;
-                break;
-            case 'down':
-                this.targetY = this.y + distance;
-                break;
-            case 'stay':
-                this.targetY = this.y;
-                break;
+        if (this.x > canvas.width - this.size - 20) {
+            this.targetAngle = Math.PI; // 왼쪽으로
+            this.x = canvas.width - this.size - 20;
         }
-        
-        // 경계 체크
-        this.targetX = this.x;
-        this.targetY = Math.max(0, Math.min(this.targetY, canvas.height - this.size));
-    }
-
-    performMove() {
-        // 목표 지점으로 천천히 이동
-        const dy = this.targetY - this.y;
-        const distance = Math.abs(dy);
-        
-        if (distance < this.moveSpeed) {
-            // 목표 도착
-            this.y = this.targetY;
-            this.state = 'waiting';
-            this.waitDuration = Math.floor(Math.random() * 90) + 120; // 2-3.5초 대기
-        } else {
-            // 이동 중
-            this.y += (dy / distance) * this.moveSpeed;
+        if (this.y < 20) {
+            this.targetAngle = Math.PI / 2; // 아래로
+            this.y = 20;
         }
+        if (this.y > canvas.height - this.size - 20) {
+            this.targetAngle = -Math.PI / 2; // 위로
+            this.y = canvas.height - this.size - 20;
+        }
+
+        // 물결 효과
+        this.waveOffset += this.waveSpeed;
     }
 
     draw() {
-        // 색상 원 그리기 (바운스 효과 적용)
-        const drawY = this.y - this.bounceHeight;
+        // 물결 효과 적용
+        const waveX = Math.sin(this.waveOffset) * this.waveAmplitude;
+        const waveY = Math.cos(this.waveOffset * 0.5) * (this.waveAmplitude * 0.5);
         
+        // 색상 원 그리기
         ctx.fillStyle = this.color;
         ctx.beginPath();
-        ctx.arc(this.x + this.size/2, drawY + this.size/2, this.size/2, 0, Math.PI * 2);
+        ctx.arc(
+            this.x + this.size/2 + waveX, 
+            this.y + this.size/2 + waveY, 
+            this.size/2, 
+            0, 
+            Math.PI * 2
+        );
         ctx.fill();
 
         ctx.font = `${this.size}px Arial`;
@@ -163,9 +123,20 @@ class Character {
         ctx.textBaseline = 'middle';
         
         if (this.isSleeping) {
-            ctx.fillText('💤', this.x + this.size/2, drawY + this.size/2);
+            ctx.fillText('💤', this.x + this.size/2 + waveX, this.y + this.size/2 + waveY);
         } else {
-            ctx.fillText(this.emoji, this.x + this.size/2, drawY + this.size/2);
+            // 이동 방향에 따라 물고기 회전
+            ctx.save();
+            ctx.translate(this.x + this.size/2 + waveX, this.y + this.size/2 + waveY);
+            
+            // 좌우 반전 (왼쪽으로 가면 뒤집기)
+            const vx = Math.cos(this.angle);
+            if (vx < 0) {
+                ctx.scale(-1, 1);
+            }
+            
+            ctx.fillText(this.emoji, 0, 0);
+            ctx.restore();
         }
     }
 }
@@ -253,14 +224,26 @@ function resizeCanvas() {
 
 // ============ 애니메이션 루프 ============
 function animate() {
-    ctx.fillStyle = '#7EC850';
+    // 바다 배경 그리기 (그라데이션)
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, '#006994');
+    gradient.addColorStop(0.5, '#0288d1');
+    gradient.addColorStop(1, '#01579b');
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = '#6BB33F';
-    for (let i = 0; i < 20; i++) {
-        ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, 3, 3);
+    // 물방울/기포 효과 (훨씬 적게)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    for (let i = 0; i < 5; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const size = Math.random() * 3 + 1;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
     }
 
+    // 모든 캐릭터 업데이트 및 그리기
     characters.forEach(char => {
         char.update();
         char.draw();
@@ -324,34 +307,91 @@ function updateUI() {
     document.getElementById('timerDisplay').textContent = 
         `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     
-    const now = new Date();
-    document.getElementById('currentTime').textContent = 
-        `현재 시간: ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-    
     const statusIndicator = document.getElementById('statusIndicator');
     const statusText = document.getElementById('statusText');
     const timerDisplay = document.getElementById('timerDisplay');
     
     if (status.isWorking) {
         statusIndicator.className = 'status-indicator status-working';
-        statusText.textContent = '작업 시간';
-        timerDisplay.style.color = '#FF6B6B';
+        statusText.textContent = '작업 중';
+        timerDisplay.style.color = 'white';
         
         characters.forEach(char => char.isSleeping = false);
         
         const breakTime = nextTransition.time;
         document.getElementById('nextBreak').textContent = 
-            `다음 휴식: ${String(breakTime.getHours()).padStart(2, '0')}:${String(breakTime.getMinutes()).padStart(2, '0')}`;
+            `${String(breakTime.getHours()).padStart(2, '0')}:${String(breakTime.getMinutes()).padStart(2, '0')} 휴식`;
+        
+        // 작업 중일 때는 메모 알림 초기화
+        memoNotificationShown = false;
     } else {
         statusIndicator.className = 'status-indicator status-breaking';
-        statusText.textContent = '휴식 시간';
-        timerDisplay.style.color = '#4CAF50';
+        statusText.textContent = '휴식 중';
+        timerDisplay.style.color = 'white';
         
         characters.forEach(char => char.isSleeping = true);
         
         const workTime = nextTransition.time;
         document.getElementById('nextBreak').textContent = 
-            `다음 작업: ${String(workTime.getHours()).padStart(2, '0')}:${String(workTime.getMinutes()).padStart(2, '0')}`;
+            `${String(workTime.getHours()).padStart(2, '0')}:${String(workTime.getMinutes()).padStart(2, '0')} 작업`;
+        
+        // 휴식 시간 시작 시 메모 표시 (한 번만)
+        if (lastStatus === true && !memoNotificationShown) {
+            showMemoNotification();
+            memoNotificationShown = true;
+        }
+    }
+    
+    lastStatus = status.isWorking;
+}
+
+// ============ 메모 기능 ============
+function toggleMemo() {
+    memoOpen = !memoOpen;
+    const memoPanel = document.getElementById('memoPanel');
+    const memoPanelOverlay = document.getElementById('memoPanelOverlay');
+    
+    if (memoOpen) {
+        memoPanel.classList.add('open');
+        memoPanelOverlay.classList.add('show');
+    } else {
+        memoPanel.classList.remove('open');
+        memoPanelOverlay.classList.remove('show');
+    }
+}
+
+function showMemoNotification() {
+    const memoTextarea = document.getElementById('breakMemo');
+    breakMemo = memoTextarea ? memoTextarea.value.trim() : '';
+    
+    if (breakMemo === '') return;
+    
+    const notification = document.getElementById('memoNotification');
+    const content = document.getElementById('memoNotificationContent');
+    
+    content.textContent = breakMemo;
+    
+    // 오버레이 생성
+    const overlay = document.createElement('div');
+    overlay.className = 'memo-overlay';
+    overlay.id = 'memoOverlay';
+    document.body.appendChild(overlay);
+    
+    // 애니메이션을 위한 약간의 딜레이
+    setTimeout(() => {
+        overlay.classList.add('show');
+        notification.classList.add('show');
+    }, 10);
+}
+
+function closeMemoNotification() {
+    const notification = document.getElementById('memoNotification');
+    const overlay = document.getElementById('memoOverlay');
+    
+    notification.classList.remove('show');
+    if (overlay) {
+        overlay.classList.remove('show');
+        setTimeout(() => overlay.remove(), 300);
     }
 }
 
@@ -379,11 +419,14 @@ function toggleChat() {
 function toggleSettings() {
     settingsOpen = !settingsOpen;
     const settingsPanel = document.getElementById('settingsPanel');
+    const settingsOverlay = document.getElementById('settingsOverlay');
     
     if (settingsOpen) {
         settingsPanel.classList.add('open');
+        settingsOverlay.classList.add('show');
     } else {
         settingsPanel.classList.remove('open');
+        settingsOverlay.classList.remove('show');
     }
 }
 
@@ -460,10 +503,12 @@ function handleChatKeypress(event) {
 // ============ 캐릭터 커스터마이징 ============
 document.getElementById('characterSelect').addEventListener('change', (e) => {
     const emojiMap = {
-        'rabbit': '🐰',
-        'cat': '🐱',
-        'dog': '🐶',
-        'bear': '🐻'
+        'fish': '🐠',
+        'octopus': '🐙',
+        'turtle': '🐢',
+        'whale': '🐋',
+        'dolphin': '🐬',
+        'crab': '🦀'
     };
     userCharacter = emojiMap[e.target.value];
     if (characters.length > 0) {
@@ -484,4 +529,19 @@ window.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+    
+    // 메모 저장 (자동 저장)
+    const memoTextarea = document.getElementById('breakMemo');
+    if (memoTextarea) {
+        // 로컬 스토리지에서 메모 불러오기
+        const savedMemo = localStorage.getItem('breakMemo');
+        if (savedMemo) {
+            memoTextarea.value = savedMemo;
+        }
+        
+        // 메모 변경 시 자동 저장
+        memoTextarea.addEventListener('input', () => {
+            localStorage.setItem('breakMemo', memoTextarea.value);
+        });
+    }
 });
