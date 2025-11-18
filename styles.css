@@ -1,0 +1,533 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(to bottom, #87CEEB, #98D8C8);
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* ============ 시작 화면 ============ */
+#startScreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    padding: 20px;
+}
+
+#startScreen h1 {
+    color: white;
+    font-size: 48px;
+    margin-bottom: 40px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.start-options {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    max-width: 500px;
+    width: 100%;
+}
+
+.option-group {
+    margin-bottom: 30px;
+}
+
+.option-group h3 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.nickname-input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.nickname-input:focus {
+    border-color: #4CAF50;
+}
+
+.nickname-input::placeholder {
+    color: #999;
+}
+
+.option-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.option-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 15px 20px;
+    border: 3px solid #ddd;
+    background: white;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 16px;
+    text-align: center;
+}
+
+.option-btn:hover {
+    border-color: #4CAF50;
+    transform: translateY(-2px);
+}
+
+.option-btn.selected {
+    border-color: #4CAF50;
+    background: #e8f5e9;
+    font-weight: bold;
+}
+
+.start-button {
+    width: 100%;
+    padding: 18px;
+    font-size: 20px;
+    font-weight: bold;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 20px;
+}
+
+.start-button:hover {
+    background: #45a049;
+    transform: scale(1.02);
+}
+
+/* ============ 메인 게임 화면 ============ */
+#gameScreen {
+    display: none;
+    height: 100vh;
+    flex-direction: column;
+    position: relative;
+}
+
+.top-bar {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+
+.timer-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.timer-display {
+    font-size: 36px;
+    font-weight: bold;
+    color: #FF6B6B;
+}
+
+.timer-label {
+    font-size: 16px;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.status-working {
+    background: #FF6B6B;
+}
+
+.status-breaking {
+    background: #4CAF50;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.info-section {
+    display: flex;
+    gap: 20px;
+    font-size: 14px;
+    color: #666;
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+}
+
+.field-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    overflow: hidden;
+    transition: margin-right 0.3s ease;
+}
+
+.field-container.chat-open {
+    margin-right: 350px;
+}
+
+#field {
+    background: #7EC850;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    max-width: 1400px;
+    max-height: 800px;
+}
+
+.character-controls {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+    z-index: 10;
+}
+
+.settings-toggle {
+    padding: 10px 20px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.settings-toggle:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+}
+
+/* ============ 설정 패널 (서랍식) ============ */
+.settings-panel {
+    position: fixed;
+    bottom: -400px;
+    left: 0;
+    right: 0;
+    height: 400px;
+    background: white;
+    box-shadow: 0 -4px 10px rgba(0,0,0,0.2);
+    transition: bottom 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    z-index: 2000;
+}
+
+.settings-panel.open {
+    bottom: 0;
+}
+
+.settings-header {
+    padding: 20px;
+    background: #4CAF50;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.close-settings {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.setting-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.setting-group label {
+    font-size: 14px;
+    color: #666;
+    font-weight: bold;
+}
+
+.setting-input {
+    padding: 12px 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.setting-input:focus {
+    border-color: #4CAF50;
+}
+
+.setting-select {
+    padding: 12px 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+}
+
+.setting-btn {
+    padding: 10px 20px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.setting-btn:hover {
+    background: #45a049;
+}
+
+#currentNickname {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+
+.color-picker {
+    display: flex;
+    gap: 8px;
+}
+
+.color-option {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.3s;
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+}
+
+.color-option.selected {
+    border-color: #333;
+}
+
+/* ============ 채팅 패널 ============ */
+.chat-panel {
+    position: fixed;
+    right: -350px;
+    top: 0;
+    width: 350px;
+    height: 100vh;
+    background: white;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+    transition: right 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+}
+
+.chat-panel.open {
+    right: 0;
+}
+
+.chat-toggle {
+    position: fixed;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    cursor: pointer;
+    font-size: 24px;
+    transition: all 0.3s;
+    z-index: 1001;
+}
+
+.chat-toggle:hover {
+    transform: translateY(-50%) scale(1.1);
+}
+
+.chat-toggle.open {
+    right: 360px;
+}
+
+.chat-header {
+    padding: 20px;
+    background: #4CAF50;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.close-chat {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.message {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.message-author {
+    font-size: 12px;
+    color: #666;
+    font-weight: bold;
+}
+
+.message-content {
+    background: #f0f0f0;
+    padding: 10px 15px;
+    border-radius: 15px;
+    font-size: 14px;
+    word-wrap: break-word;
+    max-width: 80%;
+}
+
+.message.own .message-content {
+    background: #4CAF50;
+    color: white;
+    align-self: flex-end;
+}
+
+.message.own {
+    align-items: flex-end;
+}
+
+.message-time {
+    font-size: 11px;
+    color: #999;
+}
+
+.chat-input-area {
+    padding: 15px;
+    border-top: 1px solid #ddd;
+    display: flex;
+    gap: 10px;
+}
+
+.chat-input {
+    flex: 1;
+    padding: 12px 15px;
+    border: 2px solid #ddd;
+    border-radius: 25px;
+    font-size: 14px;
+    outline: none;
+}
+
+.chat-input:focus {
+    border-color: #4CAF50;
+}
+
+.chat-send {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.chat-send:hover {
+    background: #45a049;
+    transform: scale(1.05);
+}
+
+.system-message {
+    text-align: center;
+    color: #999;
+    font-size: 12px;
+    padding: 10px;
+    font-style: italic;
+}
