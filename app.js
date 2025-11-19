@@ -13,7 +13,7 @@ let userName = '익명' + Math.floor(Math.random() * 1000);
 // 메모 관련
 let memoOpen = false;
 let breakMemo = '';
-let lastStatus = null; // 이전 상태 추적용
+let lastStatus = null;
 let memoNotificationShown = false;
 
 // 캔버스 관련
@@ -38,75 +38,64 @@ class Character {
         this.size = 40;
         this.isSleeping = false;
         
-        // 자연스러운 헤엄치기
-        this.angle = Math.random() * Math.PI * 2; // 이동 방향
-        this.speed = 0.8; // 느린 속도
-        this.turnSpeed = 0.03; // 방향 전환 속도
+        this.angle = Math.random() * Math.PI * 2;
+        this.speed = 0.8;
+        this.turnSpeed = 0.03;
         this.targetAngle = this.angle;
         
-        // 물결 효과
         this.waveOffset = Math.random() * Math.PI * 2;
         this.waveSpeed = 0.05;
         this.waveAmplitude = 3;
         
-        // 방향 전환 타이머
-        this.changeDirectionTimer = Math.floor(Math.random() * 180) + 120; // 2-5초마다
+        this.changeDirectionTimer = Math.floor(Math.random() * 180) + 120;
     }
 
     update() {
         if (this.isSleeping) return;
 
-        // 일정 시간마다 새로운 방향 선택
         this.changeDirectionTimer--;
         if (this.changeDirectionTimer <= 0) {
             this.targetAngle = Math.random() * Math.PI * 2;
             this.changeDirectionTimer = Math.floor(Math.random() * 180) + 120;
         }
 
-        // 부드럽게 목표 방향으로 회전
         let angleDiff = this.targetAngle - this.angle;
         
-        // 각도 차이를 -π ~ π 범위로 정규화
         while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
         while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
         
         this.angle += angleDiff * this.turnSpeed;
 
-        // 이동
         const vx = Math.cos(this.angle) * this.speed;
         const vy = Math.sin(this.angle) * this.speed;
         
         this.x += vx;
         this.y += vy;
 
-        // 벽에 닿으면 부드럽게 방향 전환 (튕기지 않고)
         if (this.x < 20) {
-            this.targetAngle = 0; // 오른쪽으로
+            this.targetAngle = 0;
             this.x = 20;
         }
         if (this.x > canvas.width - this.size - 20) {
-            this.targetAngle = Math.PI; // 왼쪽으로
+            this.targetAngle = Math.PI;
             this.x = canvas.width - this.size - 20;
         }
         if (this.y < 20) {
-            this.targetAngle = Math.PI / 2; // 아래로
+            this.targetAngle = Math.PI / 2;
             this.y = 20;
         }
         if (this.y > canvas.height - this.size - 20) {
-            this.targetAngle = -Math.PI / 2; // 위로
+            this.targetAngle = -Math.PI / 2;
             this.y = canvas.height - this.size - 20;
         }
 
-        // 물결 효과
         this.waveOffset += this.waveSpeed;
     }
 
     draw() {
-        // 물결 효과 적용
         const waveX = Math.sin(this.waveOffset) * this.waveAmplitude;
         const waveY = Math.cos(this.waveOffset * 0.5) * (this.waveAmplitude * 0.5);
         
-        // 색상 원 그리기
         ctx.fillStyle = this.color;
         ctx.beginPath();
         ctx.arc(
@@ -125,11 +114,9 @@ class Character {
         if (this.isSleeping) {
             ctx.fillText('💤', this.x + this.size/2 + waveX, this.y + this.size/2 + waveY);
         } else {
-            // 이동 방향에 따라 물고기 회전
             ctx.save();
             ctx.translate(this.x + this.size/2 + waveX, this.y + this.size/2 + waveY);
             
-            // 좌우 반전 (왼쪽으로 가면 뒤집기)
             const vx = Math.cos(this.angle);
             if (vx < 0) {
                 ctx.scale(-1, 1);
@@ -168,7 +155,6 @@ document.querySelectorAll('.option-btn').forEach(btn => {
 
 // ============ 게임 시작 ============
 function startGame() {
-    // 닉네임 확인
     const nicknameInput = document.getElementById('nicknameInput');
     const nickname = nicknameInput.value.trim();
     
@@ -183,7 +169,6 @@ function startGame() {
     document.getElementById('startScreen').style.display = 'none';
     document.getElementById('gameScreen').style.display = 'flex';
     
-    // 설정 패널에 닉네임 표시
     document.getElementById('currentNickname').textContent = userName;
     document.getElementById('nicknameChange').value = userName;
     
@@ -191,6 +176,19 @@ function startGame() {
     window.addEventListener('resize', resizeCanvas);
     
     initGame();
+}
+
+// ============ 홈으로 돌아가기 ============
+function goToHome() {
+    if (confirm('메인 화면으로 돌아가시겠습니까?')) {
+        document.getElementById('gameScreen').style.display = 'none';
+        document.getElementById('startScreen').style.display = 'flex';
+        
+        const chatMessages = document.getElementById('chatMessages');
+        chatMessages.innerHTML = '<div class="system-message">채팅방에 입장했습니다</div>';
+        
+        document.getElementById('chatInput').value = '';
+    }
 }
 
 // ============ 게임 초기화 ============
@@ -206,25 +204,12 @@ function initGame() {
 // ============ 캔버스 크기 조정 ============
 function resizeCanvas() {
     const container = document.querySelector('.field-container');
-    const maxWidth = container.clientWidth - 40;
-    const maxHeight = container.clientHeight - 40;
-    
-    const aspectRatio = 16 / 9;
-    let width = maxWidth;
-    let height = width / aspectRatio;
-    
-    if (height > maxHeight) {
-        height = maxHeight;
-        width = height * aspectRatio;
-    }
-    
-    canvas.width = width;
-    canvas.height = height;
+    canvas.width = container.clientWidth;
+    canvas.height = container.clientHeight;
 }
 
 // ============ 애니메이션 루프 ============
 function animate() {
-    // 바다 배경 그리기 (그라데이션)
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
     gradient.addColorStop(0, '#006994');
     gradient.addColorStop(0.5, '#0288d1');
@@ -232,7 +217,6 @@ function animate() {
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 물방울/기포 효과 (훨씬 적게)
     ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
     for (let i = 0; i < 5; i++) {
         const x = Math.random() * canvas.width;
@@ -243,7 +227,6 @@ function animate() {
         ctx.fill();
     }
 
-    // 모든 캐릭터 업데이트 및 그리기
     characters.forEach(char => {
         char.update();
         char.draw();
@@ -322,7 +305,6 @@ function updateUI() {
         document.getElementById('nextBreak').textContent = 
             `${String(breakTime.getHours()).padStart(2, '0')}:${String(breakTime.getMinutes()).padStart(2, '0')} 휴식`;
         
-        // 작업 중일 때는 메모 알림 초기화
         memoNotificationShown = false;
     } else {
         statusIndicator.className = 'status-indicator status-breaking';
@@ -335,7 +317,6 @@ function updateUI() {
         document.getElementById('nextBreak').textContent = 
             `${String(workTime.getHours()).padStart(2, '0')}:${String(workTime.getMinutes()).padStart(2, '0')} 작업`;
         
-        // 휴식 시간 시작 시 메모 표시 (한 번만)
         if (lastStatus === true && !memoNotificationShown) {
             showMemoNotification();
             memoNotificationShown = true;
@@ -371,13 +352,11 @@ function showMemoNotification() {
     
     content.textContent = breakMemo;
     
-    // 오버레이 생성
     const overlay = document.createElement('div');
     overlay.className = 'memo-overlay';
     overlay.id = 'memoOverlay';
     document.body.appendChild(overlay);
     
-    // 애니메이션을 위한 약간의 딜레이
     setTimeout(() => {
         overlay.classList.add('show');
         notification.classList.add('show');
@@ -396,23 +375,43 @@ function closeMemoNotification() {
 }
 
 // ============ 채팅 기능 ============
-function toggleChat() {
-    chatOpen = !chatOpen;
-    const chatPanel = document.getElementById('chatPanel');
-    const chatToggle = document.getElementById('chatToggle');
-    const fieldContainer = document.getElementById('fieldContainer');
+function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
     
-    if (chatOpen) {
-        chatPanel.classList.add('open');
-        chatToggle.classList.add('open');
-        fieldContainer.classList.add('chat-open');
-    } else {
-        chatPanel.classList.remove('open');
-        chatToggle.classList.remove('open');
-        fieldContainer.classList.remove('chat-open');
+    if (message === '') return;
+    
+    addMessage(userName, message, true);
+    input.value = '';
+    
+    setTimeout(() => {
+        const responses = [
+            '화이팅!',
+            '같이 공부해요~',
+            '집중 모드 ON!',
+            '잠시만 쉬었다 올게요',
+            '좋은 하루 보내세요!'
+        ];
+        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+        addMessage('익명' + Math.floor(Math.random() * 1000), randomResponse, false);
+    }, 1000 + Math.random() * 2000);
+}
+
+function addMessage(author, content, isOwn) {
+    const messagesDiv = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message';
+    
+    messageDiv.innerHTML = `<span class="message-author">${author}:</span> <span class="message-content">${content}</span>`;
+    
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function handleChatKeypress(event) {
+    if (event.key === 'Enter') {
+        sendMessage();
     }
-    
-    setTimeout(resizeCanvas, 300);
 }
 
 // ============ 설정 패널 기능 ============
@@ -442,7 +441,6 @@ function changeNickname() {
     userName = newNickname;
     document.getElementById('currentNickname').textContent = userName;
     
-    // 채팅에 시스템 메시지 추가
     const messagesDiv = document.getElementById('chatMessages');
     const systemMsg = document.createElement('div');
     systemMsg.className = 'system-message';
@@ -451,53 +449,6 @@ function changeNickname() {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
     
     alert('닉네임이 변경되었습니다!');
-}
-
-function sendMessage() {
-    const input = document.getElementById('chatInput');
-    const message = input.value.trim();
-    
-    if (message === '') return;
-    
-    addMessage(userName, message, true);
-    input.value = '';
-    
-    // 테스트: 자동 응답
-    setTimeout(() => {
-        const responses = [
-            '화이팅!',
-            '같이 공부해요~',
-            '집중 모드 ON!',
-            '잠시만 쉬었다 올게요',
-            '좋은 하루 보내세요!'
-        ];
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-        addMessage('익명' + Math.floor(Math.random() * 1000), randomResponse, false);
-    }, 1000 + Math.random() * 2000);
-}
-
-function addMessage(author, content, isOwn) {
-    const messagesDiv = document.getElementById('chatMessages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message' + (isOwn ? ' own' : '');
-    
-    const now = new Date();
-    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    
-    messageDiv.innerHTML = `
-        ${!isOwn ? `<div class="message-author">${author}</div>` : ''}
-        <div class="message-content">${content}</div>
-        <div class="message-time">${timeStr}</div>
-    `;
-    
-    messagesDiv.appendChild(messageDiv);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-}
-
-function handleChatKeypress(event) {
-    if (event.key === 'Enter') {
-        sendMessage();
-    }
 }
 
 // ============ 캐릭터 커스터마이징 ============
@@ -516,7 +467,6 @@ document.getElementById('characterSelect').addEventListener('change', (e) => {
     }
 });
 
-// 색상 선택은 페이지 로드 후 설정
 window.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.color-option').forEach(option => {
         option.addEventListener('click', (e) => {
@@ -530,16 +480,13 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    // 메모 저장 (자동 저장)
     const memoTextarea = document.getElementById('breakMemo');
     if (memoTextarea) {
-        // 로컬 스토리지에서 메모 불러오기
         const savedMemo = localStorage.getItem('breakMemo');
         if (savedMemo) {
             memoTextarea.value = savedMemo;
         }
         
-        // 메모 변경 시 자동 저장
         memoTextarea.addEventListener('input', () => {
             localStorage.setItem('breakMemo', memoTextarea.value);
         });
