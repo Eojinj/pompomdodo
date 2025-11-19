@@ -66,6 +66,7 @@
     <div id="gameScreen">
         <div class="top-bar">
             <div class="timer-section">
+                <button class="home-button" onclick="goToHome()" title="메인 화면으로">🏠</button>
                 <div class="timer-label">
                     <span class="status-indicator status-working" id="statusIndicator"></span>
                     <span id="statusText">작업 중</span>
@@ -83,36 +84,29 @@
         <div class="main-content">
             <div class="field-container" id="fieldContainer">
                 <canvas id="field"></canvas>
+                
+                <!-- 채팅 영역 -->
+                <div class="chat-area">
+                    <div class="chat-messages-inline" id="chatMessages">
+                        <div class="system-message">채팅방에 입장했습니다</div>
+                    </div>
+                    
+                    <div class="chat-input-inline">
+                        <button class="memo-btn-inline" onclick="toggleMemo()" title="메모">📝</button>
+                        <input 
+                            type="text" 
+                            class="chat-input" 
+                            id="chatInput" 
+                            placeholder="메시지를 입력하세요..."
+                            onkeypress="handleChatKeypress(event)"
+                        >
+                        <button class="chat-send" onclick="sendMessage()">➤</button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- 채팅 토글 버튼 -->
-        <button class="chat-toggle" id="chatToggle" onclick="toggleChat()">💬</button>
-
-        <!-- 채팅 패널 -->
-        <div class="chat-panel" id="chatPanel">
-            <div class="chat-header">
-                <span>채팅</span>
-                <button class="close-chat" onclick="toggleChat()">×</button>
-            </div>
-            
-            <div class="chat-messages" id="chatMessages">
-                <div class="system-message">채팅방에 입장했습니다</div>
-            </div>
-            
-            <div class="chat-input-area">
-                <input 
-                    type="text" 
-                    class="chat-input" 
-                    id="chatInput" 
-                    placeholder="메시지를 입력하세요..."
-                    onkeypress="handleChatKeypress(event)"
-                >
-                <button class="chat-send" onclick="sendMessage()">➤</button>
-            </div>
-        </div>
-
-        <!-- 설정 패널 (서랍식) -->
+        <!-- 설정 패널 -->
         <div class="settings-overlay" id="settingsOverlay" onclick="toggleSettings()"></div>
         <div class="settings-panel" id="settingsPanel">
             <div class="settings-header">
@@ -162,13 +156,8 @@
             </div>
         </div>
 
-        <!-- 메모 버튼 (우측 하단) -->
-        <button class="memo-toggle" id="memoToggle" onclick="toggleMemo()">📝</button>
-
-        <!-- 메모 패널 오버레이 -->
-        <div class="memo-panel-overlay" id="memoPanelOverlay" onclick="toggleMemo()"></div>
-
         <!-- 메모 패널 -->
+        <div class="memo-panel-overlay" id="memoPanelOverlay" onclick="toggleMemo()"></div>
         <div class="memo-panel" id="memoPanel">
             <div class="memo-header">
                 <span>📝 쉬는 시간 메모</span>
@@ -184,7 +173,7 @@
             </div>
         </div>
 
-        <!-- 메모 알림 패널 -->
+        <!-- 메모 알림 -->
         <div class="memo-notification" id="memoNotification">
             <div class="memo-notification-header">
                 <span>🔔 쉬는 시간 메모</span>
