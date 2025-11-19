@@ -9,6 +9,7 @@ let CYCLE_DURATION = 30;
 let chatOpen = false;
 let settingsOpen = false;
 let userName = '익명' + Math.floor(Math.random() * 1000);
+let sessionGoal = '';
 
 // 메모 관련
 let memoOpen = false;
@@ -166,11 +167,18 @@ function startGame() {
     
     userName = nickname;
     
+    // 세션 목표 가져오기
+    const goalInput = document.getElementById('sessionGoalInput');
+    sessionGoal = goalInput.value.trim();
+    
     document.getElementById('startScreen').style.display = 'none';
     document.getElementById('gameScreen').style.display = 'flex';
     
     document.getElementById('currentNickname').textContent = userName;
     document.getElementById('nicknameChange').value = userName;
+    
+    // 설정 패널에 목표 표시
+    document.getElementById('goalChange').value = sessionGoal;
     
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
@@ -449,6 +457,12 @@ function changeNickname() {
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
     
     alert('닉네임이 변경되었습니다!');
+}
+
+function changeGoal() {
+    const newGoal = document.getElementById('goalChange').value.trim();
+    sessionGoal = newGoal;
+    alert('목표가 변경되었습니다!');
 }
 
 // ============ 캐릭터 커스터마이징 ============
