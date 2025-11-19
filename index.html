@@ -25,6 +25,18 @@
             </div>
 
             <div class="option-group">
+                <h3>오늘의 목표</h3>
+                <input 
+                    type="text" 
+                    id="sessionGoalInput" 
+                    class="nickname-input" 
+                    placeholder="예: 수학 과제 3페이지 완료하기" 
+                    maxlength="50"
+                    value=""
+                >
+            </div>
+
+            <div class="option-group">
                 <h3>서버 선택</h3>
                 <div class="option-buttons">
                     <div class="option-btn selected" data-server="1">
@@ -66,12 +78,14 @@
     <div id="gameScreen">
         <div class="top-bar">
             <div class="timer-section">
-                <button class="home-button" onclick="goToHome()" title="메인 화면으로">🏠</button>
-                <div class="timer-label">
-                    <span class="status-indicator status-working" id="statusIndicator"></span>
-                    <span id="statusText">작업 중</span>
+                <button class="home-button" onclick="goToHome()" title="메인 화면으로">홈</button>
+                <div class="timer-info">
+                    <div class="timer-label">
+                        <span class="status-indicator status-working" id="statusIndicator"></span>
+                        <span id="statusText">작업 중</span>
+                    </div>
+                    <div class="timer-display" id="timerDisplay">25:00</div>
                 </div>
-                <div class="timer-display" id="timerDisplay">25:00</div>
             </div>
             
             <div class="info-section">
@@ -128,6 +142,18 @@
                 </div>
 
                 <div class="setting-group">
+                    <label>오늘의 목표</label>
+                    <input 
+                        type="text" 
+                        id="goalChange" 
+                        class="setting-input" 
+                        placeholder="오늘의 목표를 입력하세요"
+                        maxlength="50"
+                    >
+                    <button class="setting-btn" onclick="changeGoal()">변경</button>
+                </div>
+
+                <div class="setting-group">
                     <label>캐릭터 선택</label>
                     <select id="characterSelect" class="setting-select">
                         <option value="fish">물고기 🐠</option>
@@ -175,13 +201,10 @@
 
         <!-- 메모 알림 -->
         <div class="memo-notification" id="memoNotification">
-            <div class="memo-notification-header">
-                <span>🔔 쉬는 시간 메모</span>
-                <button class="close-memo-notification" onclick="closeMemoNotification()">×</button>
-            </div>
             <div class="memo-notification-content" id="memoNotificationContent">
                 메모가 없습니다
             </div>
+            <button class="close-memo-notification" onclick="closeMemoNotification()">×</button>
         </div>
     </div>
 
