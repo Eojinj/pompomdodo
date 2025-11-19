@@ -125,7 +125,7 @@ body {
 
 .top-bar {
     background: transparent;
-    padding: 20px 30px;
+    padding: 15px 30px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -138,19 +138,26 @@ body {
     gap: 20px;
 }
 
+.timer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
 .home-button {
-    padding: 10px 18px;
+    padding: 8px 16px;
     background: rgba(255, 255, 255, 0.2);
     color: white;
     border: 2px solid rgba(255, 255, 255, 0.4);
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 22px;
+    font-size: 14px;
     transition: all 0.3s;
     backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
     justify-content: center;
+    font-weight: 600;
 }
 
 .home-button:hover {
@@ -164,14 +171,14 @@ body {
 }
 
 .timer-display {
-    font-size: 48px;
+    font-size: 36px;
     font-weight: 900;
     color: white;
     text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
 }
 
 .timer-label {
-    font-size: 18px;
+    font-size: 14px;
     color: white;
     font-weight: 700;
     display: flex;
@@ -205,7 +212,7 @@ body {
 .info-section {
     display: flex;
     gap: 20px;
-    font-size: 15px;
+    font-size: 13px;
     color: white;
     font-weight: 600;
     align-items: center;
@@ -213,13 +220,13 @@ body {
 }
 
 .settings-toggle-top {
-    padding: 10px 18px;
+    padding: 8px 16px;
     background: rgba(255, 255, 255, 0.2);
     color: white;
     border: 2px solid rgba(255, 255, 255, 0.4);
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 22px;
+    font-size: 18px;
     transition: all 0.3s;
     margin-left: 15px;
     backdrop-filter: blur(10px);
@@ -536,14 +543,22 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(0);
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
     width: 90%;
-    max-width: 450px;
+    max-width: 500px;
+    min-height: 300px;
+    max-height: 500px;
     z-index: 3000;
     opacity: 0;
     transition: all 0.3s ease;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
 }
 
 .memo-notification.show {
@@ -551,50 +566,50 @@ body {
     opacity: 1;
 }
 
-.memo-notification-header {
-    padding: 20px;
-    background: #546e7a;
-    color: white;
-    font-size: 18px;
-    font-weight: bold;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-radius: 15px 15px 0 0;
-}
-
 .close-memo-notification {
-    background: none;
-    border: none;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     color: white;
-    font-size: 28px;
+    font-size: 24px;
     cursor: pointer;
     padding: 0;
-    width: 35px;
-    height: 35px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s;
+    transition: all 0.2s;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .close-memo-notification:hover {
+    background: rgba(255, 255, 255, 0.3);
     transform: rotate(90deg);
 }
 
 .memo-notification-content {
-    padding: 30px;
-    font-size: 16px;
+    flex: 1;
+    font-size: 15px;
     line-height: 1.6;
-    color: #333;
+    color: white;
     white-space: pre-wrap;
-    max-height: 300px;
     overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.memo-notification-content::-webkit-scrollbar {
+    display: none;
 }
 
 .memo-notification-content:empty::before {
     content: "메모가 없습니다";
-    color: #999;
+    color: rgba(255, 255, 255, 0.5);
     font-style: italic;
 }
 
