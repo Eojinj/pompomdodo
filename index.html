@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>폼폼도도 - 뽀모도로 스터디룸</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- 시작 화면 -->
+    <div id="startScreen">
+        <h1>🐠 폼폼도도</h1>
+        
+        <div class="start-options">
+            <div class="option-group">
+                <h3>닉네임</h3>
+                <input 
+                    type="text" 
+                    id="nicknameInput" 
+                    class="nickname-input" 
+                    placeholder="닉네임을 입력하세요" 
+                    maxlength="12"
+                    value=""
+                >
+            </div>
+
+            <div class="option-group">
+                <h3>오늘의 목표</h3>
+                <input 
+                    type="text" 
+                    id="sessionGoalInput" 
+                    class="nickname-input" 
+                    placeholder="예: 수학 과제 3페이지 완료하기" 
+                    maxlength="50"
+                    value=""
+                >
+            </div>
+
+            <div class="option-group">
+                <h3>서버 선택</h3>
+                <div class="option-buttons">
+                    <div class="option-btn selected" data-server="1">
+                        서버 1<br>
+                        <small>한국</small>
+                    </div>
+                    <div class="option-btn" data-server="2">
+                        서버 2<br>
+                        <small>아시아</small>
+                    </div>
+                    <div class="option-btn" data-server="3">
+                        서버 3<br>
+                        <small>글로벌</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="option-group">
+                <h3>뽀모도로 유형</h3>
+                <div class="option-buttons">
+                    <div class="option-btn selected" data-pomodoro="25">
+                        기본형<br>
+                        <small>25분 작업 / 5분 휴식</small>
+                    </div>
+                    <div class="option-btn" data-pomodoro="50">
+                        집중형<br>
+                        <small>50분 작업 / 10분 휴식</small>
+                    </div>
+                </div>
+            </div>
+
+            <button class="start-button" onclick="startGame()">
+                시작하기
+            </button>
+        </div>
+    </div>
+
+    <!-- 메인 게임 화면 -->
+    <div id="gameScreen">
+        <div class="top-bar">
+            <div class="timer-section">
+                <button class="home-button" onclick="goToHome()" title="메인 화면으로">홈</button>
+                <div class="timer-info">
+                    <div class="timer-label">
+                        <span class="status-indicator status-working" id="statusIndicator"></span>
+                        <span id="statusText">작업 중</span>
+                    </div>
+                    <div class="timer-display" id="timerDisplay">25:00</div>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <div id="nextBreak">--:--</div>
+                <div><span id="onlineCount">1</span>명</div>
+                <button class="settings-toggle-top" onclick="toggleSettings()">⚙️</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="field-container" id="fieldContainer">
+                <canvas id="field"></canvas>
+                
+                <!-- 채팅 영역 -->
+                <div class="chat-area">
+                    <div class="chat-messages-inline" id="chatMessages">
+                        <div class="system-message">채팅방에 입장했습니다</div>
+                    </div>
+                    
+                    <div class="chat-input-inline">
+                        <button class="memo-btn-inline" onclick="toggleMemo()" title="메모">📝</button>
+                        <input 
+                            type="text" 
+                            class="chat-input" 
+                            id="chatInput" 
+                            placeholder="메시지를 입력하세요..."
+                            onkeypress="handleChatKeypress(event)"
+                        >
+                        <button class="chat-send" onclick="sendMessage()">➤</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 설정 패널 -->
+        <div class="settings-overlay" id="settingsOverlay" onclick="toggleSettings()"></div>
+        <div class="settings-panel" id="settingsPanel">
+            <div class="settings-header">
+                <span>설정</span>
+                <button class="close-settings" onclick="toggleSettings()">×</button>
+            </div>
+            
+            <div class="settings-content">
+                <div class="setting-group">
+                    <label>닉네임</label>
+                    <input 
+                        type="text" 
+                        id="nicknameChange" 
+                        class="setting-input" 
+                        placeholder="닉네임을 입력하세요"
+                        maxlength="12"
+                    >
+                    <button class="setting-btn" onclick="changeNickname()">변경</button>
+                </div>
+
+                <div class="setting-group">
+                    <label>오늘의 목표</label>
+                    <input 
+                        type="text" 
+                        id="goalChange" 
+                        class="setting-input" 
+                        placeholder="오늘의 목표를 입력하세요"
+                        maxlength="50"
+                    >
+                    <button class="setting-btn" onclick="changeGoal()">변경</button>
+                </div>
+
+                <div class="setting-group">
+                    <label>캐릭터 선택</label>
+                    <select id="characterSelect" class="setting-select">
+                        <option value="fish">물고기 🐠</option>
+                        <option value="octopus">문어 🐙</option>
+                        <option value="turtle">거북이 🐢</option>
+                        <option value="whale">고래 🐋</option>
+                        <option value="dolphin">돌고래 🐬</option>
+                        <option value="crab">게 🦀</option>
+                    </select>
+                </div>
+
+                <div class="setting-group">
+                    <label>색상 선택</label>
+                    <div class="color-picker">
+                        <div class="color-option selected" style="background: #4DD0E1;" data-color="#4DD0E1"></div>
+                        <div class="color-option" style="background: #80DEEA;" data-color="#80DEEA"></div>
+                        <div class="color-option" style="background: #26C6DA;" data-color="#26C6DA"></div>
+                        <div class="color-option" style="background: #00ACC1;" data-color="#00ACC1"></div>
+                        <div class="color-option" style="background: #0097A7;" data-color="#0097A7"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 메모 패널 -->
+        <div class="memo-panel-overlay" id="memoPanelOverlay" onclick="toggleMemo()"></div>
+        <div class="memo-panel" id="memoPanel">
+            <div class="memo-header">
+                <span>📝 쉬는 시간 메모</span>
+                <button class="close-memo" onclick="toggleMemo()">×</button>
+            </div>
+            <div class="memo-content">
+                <textarea 
+                    id="breakMemo" 
+                    class="memo-textarea" 
+                    placeholder="쉬는 시간에 할 일을 적어보세요...&#10;&#10;예시:&#10;• 스트레칭하기&#10;• 물 마시기&#10;• 간식 먹기&#10;• 눈 운동하기"
+                ></textarea>
+                <div class="memo-info">💡 쉬는 시간이 되면 자동으로 표시됩니다</div>
+            </div>
+        </div>
+
+        <!-- 메모 알림 -->
+        <div class="memo-notification" id="memoNotification">
+            <div class="memo-notification-content" id="memoNotificationContent">
+                메모가 없습니다
+            </div>
+            <button class="close-memo-notification" onclick="closeMemoNotification()">×</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,817 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(to bottom, #2c3e50, #34495e, #4a5f7f);
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* ============ 시작 화면 ============ */
+#startScreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    padding: 20px;
+}
+
+#startScreen h1 {
+    color: white;
+    font-size: 48px;
+    margin-bottom: 40px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.start-options {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    max-width: 500px;
+    width: 100%;
+    backdrop-filter: blur(10px);
+}
+
+.option-group {
+    margin-bottom: 30px;
+}
+
+.option-group h3 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.nickname-input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.nickname-input:focus {
+    border-color: #546e7a;
+}
+
+.nickname-input::placeholder {
+    color: #999;
+}
+
+.option-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.option-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 15px 20px;
+    border: 3px solid #ddd;
+    background: white;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 16px;
+    text-align: center;
+}
+
+.option-btn:hover {
+    border-color: #546e7a;
+    transform: translateY(-2px);
+}
+
+.option-btn.selected {
+    border-color: #546e7a;
+    background: #eceff1;
+    font-weight: bold;
+}
+
+.start-button {
+    width: 100%;
+    padding: 18px;
+    font-size: 20px;
+    font-weight: bold;
+    background: #546e7a;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 20px;
+}
+
+.start-button:hover {
+    background: #455a64;
+    transform: scale(1.02);
+}
+
+/* ============ 메인 게임 화면 ============ */
+#gameScreen {
+    display: none;
+    height: 100vh;
+    flex-direction: column;
+    position: relative;
+}
+
+.top-bar {
+    background: transparent;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+}
+
+.timer-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.timer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.home-button {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.home-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: scale(1.05);
+}
+
+.home-button:active {
+    transform: scale(0.95);
+}
+
+.timer-display {
+    font-size: 36px;
+    font-weight: 900;
+    color: white;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+}
+
+.timer-label {
+    font-size: 14px;
+    color: white;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+}
+
+.status-indicator {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+    box-shadow: 0 0 8px rgba(255,255,255,0.5);
+}
+
+.status-working {
+    background: #FF6B6B;
+}
+
+.status-breaking {
+    background: #546e7a;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.info-section {
+    display: flex;
+    gap: 20px;
+    font-size: 13px;
+    color: white;
+    font-weight: 600;
+    align-items: center;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+}
+
+.settings-toggle-top {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.3s;
+    margin-left: 15px;
+    backdrop-filter: blur(10px);
+}
+
+.settings-toggle-top:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: scale(1.05);
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+}
+
+.field-container {
+    flex: 1;
+    display: flex;
+    position: relative;
+    overflow: hidden;
+}
+
+#field {
+    width: 100%;
+    height: 100%;
+}
+
+/* ============ 설정 패널 ============ */
+.settings-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    z-index: 2000;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    padding: 30px;
+}
+
+.settings-panel.open {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+}
+
+.settings-header {
+    display: none;
+}
+
+.close-settings {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    line-height: 1;
+}
+
+.close-settings:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.settings-content {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    width: 100%;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.settings-content::-webkit-scrollbar {
+    display: none;
+}
+
+.setting-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.setting-group label {
+    font-size: 14px;
+    color: white;
+    font-weight: 600;
+}
+
+.setting-input {
+    padding: 12px 15px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s;
+    color: white;
+    backdrop-filter: blur(10px);
+}
+
+.setting-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.setting-input:focus {
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.setting-select {
+    padding: 12px 15px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+    color: white;
+    backdrop-filter: blur(10px);
+}
+
+.setting-select option {
+    background: #546e7a;
+    color: white;
+}
+
+.setting-btn {
+    padding: 10px 20px;
+    background: rgba(84, 110, 122, 0.7);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+}
+
+.setting-btn:hover {
+    background: rgba(84, 110, 122, 0.9);
+    transform: scale(1.02);
+}
+
+.setting-btn:active {
+    transform: scale(0.98);
+}
+
+#currentNickname {
+    color: white;
+    font-weight: bold;
+}
+
+.color-picker {
+    display: flex;
+    gap: 12px;
+}
+
+.color-option {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.3s;
+    backdrop-filter: blur(5px);
+}
+
+.color-option:hover {
+    transform: scale(1.15);
+}
+
+.color-option.selected {
+    border-color: white;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.settings-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(3px);
+}
+
+.settings-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ============ 메모 패널 ============ */
+.memo-panel {
+    position: fixed;
+    bottom: -100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 600px;
+    height: 70vh;
+    max-height: 70vh;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px 20px 0 0;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 -8px 30px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    z-index: 2000;
+    transition: bottom 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    padding: 25px;
+}
+
+.memo-panel.open {
+    bottom: 0;
+}
+
+.memo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.memo-header span {
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+}
+
+.close-memo {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.close-memo:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.memo-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+}
+
+.memo-textarea {
+    flex: 1;
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    resize: none;
+    color: white;
+    backdrop-filter: blur(10px);
+    font-family: inherit;
+    line-height: 1.6;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.memo-textarea::-webkit-scrollbar {
+    display: none;
+}
+
+.memo-textarea::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.memo-info {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+}
+
+.memo-panel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(3px);
+}
+
+.memo-panel-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ============ 메모 알림 ============ */
+.memo-notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 90%;
+    max-width: 500px;
+    max-height: 70vh;
+    background: rgba(84, 110, 122, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    padding: 30px;
+    z-index: 3000;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    display: flex;
+    flex-direction: column;
+}
+
+.memo-notification.show {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+}
+
+.close-memo-notification {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.close-memo-notification:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.memo-notification-content {
+    flex: 1;
+    font-size: 15px;
+    line-height: 1.6;
+    color: white;
+    white-space: pre-wrap;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.memo-notification-content::-webkit-scrollbar {
+    display: none;
+}
+
+.memo-notification-content:empty::before {
+    content: "메모가 없습니다";
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+}
+
+.memo-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.memo-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ============ 채팅 영역 ============ */
+.chat-area {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 25%;
+    display: flex;
+    flex-direction: column;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.chat-messages-inline {
+    flex: 1;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    pointer-events: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    min-height: 0;
+}
+
+.chat-messages-inline > *:first-child {
+    margin-top: auto;
+}
+
+.chat-messages-inline::-webkit-scrollbar {
+    display: none;
+}
+
+.chat-messages-inline .message {
+    font-size: 14px;
+    color: white;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+    line-height: 1.6;
+    word-wrap: break-word;
+    background: none;
+    display: inline;
+}
+
+.chat-messages-inline .message-author {
+    font-weight: bold;
+    color: white;
+    background: none;
+    display: inline;
+}
+
+.chat-messages-inline .message-content {
+    display: inline;
+    background: none;
+    padding: 0;
+    border-radius: 0;
+    color: white;
+    max-width: 100%;
+}
+
+.chat-messages-inline .system-message {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+    padding: 5px;
+    font-style: italic;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.chat-input-inline {
+    padding: 15px 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: transparent;
+    pointer-events: auto;
+}
+
+.memo-btn-inline {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    flex-shrink: 0;
+}
+
+.memo-btn-inline:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+.memo-btn-inline:active {
+    transform: scale(0.95);
+}
+
+.chat-input-inline .chat-input {
+    flex: 1;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 25px;
+    font-size: 14px;
+    outline: none;
+    background: transparent;
+    color: white;
+    transition: all 0.3s;
+}
+
+.chat-input-inline .chat-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.chat-input-inline .chat-input:focus {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.chat-input-inline .chat-send {
+    background: rgba(84, 110, 122, 0.7);
+    color: white;
+    border: none;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+    flex-shrink: 0;
+}
+
+.chat-input-inline .chat-send:hover {
+    background: rgba(84, 110, 122, 0.9);
+    transform: scale(1.05);
+}
+
+.chat-input-inline .chat-send:active {
+    transform: scale(0.95);
+}
