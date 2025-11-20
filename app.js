@@ -1,4 +1,4 @@
-// ============ 설정 변수 ============
+// 설정 변수
 let selectedServer = '1';
 let selectedPomodoroType = 25;
 let WORK_DURATION = 25;
@@ -28,7 +28,7 @@ let userColor = '#4DD0E1';
 // 캐릭터 배열
 let characters = [];
 
-// ============ 캐릭터 클래스 ============
+// 캐릭터 클래스
 class Character {
     constructor(emoji, color, id) {
         this.emoji = emoji;
@@ -129,7 +129,7 @@ class Character {
     }
 }
 
-// ============ 시작 화면 이벤트 ============
+// 시작 화면 이벤트
 document.querySelectorAll('.option-btn').forEach(btn => {
     btn.addEventListener('click', function() {
         const group = this.parentElement;
@@ -154,7 +154,7 @@ document.querySelectorAll('.option-btn').forEach(btn => {
     });
 });
 
-// ============ 게임 시작 ============
+// 게임 시작
 function startGame() {
     const nicknameInput = document.getElementById('nicknameInput');
     const nickname = nicknameInput.value.trim();
@@ -167,17 +167,13 @@ function startGame() {
     
     userName = nickname;
     
-    // 세션 목표 가져오기
     const goalInput = document.getElementById('sessionGoalInput');
     sessionGoal = goalInput.value.trim();
     
     document.getElementById('startScreen').style.display = 'none';
     document.getElementById('gameScreen').style.display = 'flex';
     
-    document.getElementById('currentNickname').textContent = userName;
     document.getElementById('nicknameChange').value = userName;
-    
-    // 설정 패널에 목표 표시
     document.getElementById('goalChange').value = sessionGoal;
     
     resizeCanvas();
@@ -186,7 +182,7 @@ function startGame() {
     initGame();
 }
 
-// ============ 홈으로 돌아가기 ============
+// 홈으로 돌아가기
 function goToHome() {
     if (confirm('메인 화면으로 돌아가시겠습니까?')) {
         document.getElementById('gameScreen').style.display = 'none';
@@ -199,7 +195,7 @@ function goToHome() {
     }
 }
 
-// ============ 게임 초기화 ============
+// 게임 초기화
 function initGame() {
     characters = [];
     characters.push(new Character(userCharacter, userColor, 1));
@@ -209,14 +205,14 @@ function initGame() {
     setInterval(updateUI, 1000);
 }
 
-// ============ 캔버스 크기 조정 ============
+// 캔버스 크기 조정
 function resizeCanvas() {
     const container = document.querySelector('.field-container');
     canvas.width = container.clientWidth;
     canvas.height = container.clientHeight;
 }
 
-// ============ 애니메이션 루프 ============
+// 애니메이션 루프
 function animate() {
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
     gradient.addColorStop(0, '#006994');
@@ -243,7 +239,7 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
-// ============ 타이머 로직 ============
+// 타이머 로직
 function getCurrentStatus() {
     const now = new Date();
     const minutes = now.getMinutes();
@@ -288,7 +284,7 @@ function getNextTransitionTime() {
     }
 }
 
-// ============ UI 업데이트 ============
+// UI 업데이트
 function updateUI() {
     const status = getCurrentStatus();
     const nextTransition = getNextTransitionTime();
@@ -334,7 +330,7 @@ function updateUI() {
     lastStatus = status.isWorking;
 }
 
-// ============ 메모 기능 ============
+// 메모 기능
 function toggleMemo() {
     memoOpen = !memoOpen;
     const memoPanel = document.getElementById('memoPanel');
@@ -382,7 +378,7 @@ function closeMemoNotification() {
     }
 }
 
-// ============ 채팅 기능 ============
+// 채팅 기능
 function sendMessage() {
     const input = document.getElementById('chatInput');
     const message = input.value.trim();
@@ -422,7 +418,7 @@ function handleChatKeypress(event) {
     }
 }
 
-// ============ 설정 패널 기능 ============
+// 설정 패널 기능
 function toggleSettings() {
     settingsOpen = !settingsOpen;
     const settingsPanel = document.getElementById('settingsPanel');
@@ -447,7 +443,6 @@ function changeNickname() {
     
     const oldNickname = userName;
     userName = newNickname;
-    document.getElementById('currentNickname').textContent = userName;
     
     const messagesDiv = document.getElementById('chatMessages');
     const systemMsg = document.createElement('div');
@@ -465,7 +460,7 @@ function changeGoal() {
     alert('목표가 변경되었습니다!');
 }
 
-// ============ 캐릭터 커스터마이징 ============
+// 캐릭터 커스터마이징
 document.getElementById('characterSelect').addEventListener('change', (e) => {
     const emojiMap = {
         'fish': '🐠',
