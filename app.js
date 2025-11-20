@@ -499,5 +499,5 @@ window.addEventListener('DOMContentLoaded', () => {
         memoTextarea.addEventListener('input', () => {
             localStorage.setItem('breakMemo', memoTextarea.value);
         });
-    }
-});
+    };
+})
