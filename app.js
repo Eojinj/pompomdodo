@@ -13,9 +13,16 @@ let sessionGoal = '';
 
 // 메모 관련
 let memoOpen = false;
-let breakMemo = '';
+let todoItems = [];
 let lastStatus = null;
 let memoNotificationShown = false;
+
+// 알람 관련
+let alarmPlaying = false;
+let audioContext = null;
+let oscillator = null;
+let gainNode = null;
+let alarmTimeout = null;
 
 // 캔버스 관련
 const canvas = document.getElementById('field');
@@ -119,7 +126,8 @@ class Character {
             ctx.translate(this.x + this.size/2 + waveX, this.y + this.size/2 + waveY);
             
             const vx = Math.cos(this.angle);
-            if (vx < 0) {
+            // 물고기가 오른쪽으로 갈 때 반전 (원래와 반대)
+            if (vx > 0) {
                 ctx.scale(-1, 1);
             }
             
@@ -221,11 +229,12 @@ function animate() {
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-    for (let i = 0; i < 5; i++) {
+    // 물방울 개수 줄이고 투명도 낮춤
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    for (let i = 0; i < 3; i++) {
         const x = Math.random() * canvas.width;
         const y = Math.random() * canvas.height;
-        const size = Math.random() * 3 + 1;
+        const size = Math.random() * 2 + 0.5;
         ctx.beginPath();
         ctx.arc(x, y, size, 0, Math.PI * 2);
         ctx.fill();
@@ -309,7 +318,11 @@ function updateUI() {
         document.getElementById('nextBreak').textContent = 
             `${String(breakTime.getHours()).padStart(2, '0')}:${String(breakTime.getMinutes()).padStart(2, '0')} 휴식`;
         
-        memoNotificationShown = false;
+        // 작업 시작 알람 (휴식에서 작업으로 전환)
+        if (lastStatus === false && !memoNotificationShown) {
+            showAlarmNotification(false);
+            memoNotificationShown = true;
+        }
     } else {
         statusIndicator.className = 'status-indicator status-breaking';
         statusText.textContent = '휴식 중';
@@ -321,8 +334,9 @@ function updateUI() {
         document.getElementById('nextBreak').textContent = 
             `${String(workTime.getHours()).padStart(2, '0')}:${String(workTime.getMinutes()).padStart(2, '0')} 작업`;
         
+        // 휴식 시작 알람 (작업에서 휴식으로 전환)
         if (lastStatus === true && !memoNotificationShown) {
-            showMemoNotification();
+            showAlarmNotification(true);
             memoNotificationShown = true;
         }
     }
@@ -330,7 +344,135 @@ function updateUI() {
     lastStatus = status.isWorking;
 }
 
-// 메모 기능
+// 알람 사운드 기능
+function playAlarmSound() {
+    if (alarmPlaying) return;
+    
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    alarmPlaying = true;
+    
+    playAlarmBeep();
+    
+    // 15초 후 자동으로 알람 멈춤
+    alarmTimeout = setTimeout(() => {
+        stopAlarmSound();
+    }, 15000);
+}
+
+function playAlarmBeep() {
+    if (!alarmPlaying) return;
+    
+    // 첫 번째 비프음
+    oscillator = audioContext.createOscillator();
+    gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.3);
+    
+    // 두 번째 비프음
+    setTimeout(() => {
+        if (!alarmPlaying) return;
+        
+        const osc2 = audioContext.createOscillator();
+        const gain2 = audioContext.createGain();
+        
+        osc2.connect(gain2);
+        gain2.connect(audioContext.destination);
+        
+        osc2.frequency.value = 1000;
+        osc2.type = 'sine';
+        
+        gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        
+        osc2.start(audioContext.currentTime);
+        osc2.stop(audioContext.currentTime + 0.3);
+        
+        // 2초 후 반복
+        setTimeout(() => {
+            if (alarmPlaying) {
+                playAlarmBeep();
+            }
+        }, 2000);
+    }, 300);
+}
+
+function stopAlarmSound() {
+    alarmPlaying = false;
+    
+    if (alarmTimeout) {
+        clearTimeout(alarmTimeout);
+        alarmTimeout = null;
+    }
+    
+    if (oscillator) {
+        try {
+            oscillator.stop();
+        } catch (e) {}
+    }
+    if (audioContext) {
+        audioContext.close();
+        audioContext = null;
+    }
+}
+
+function showAlarmNotification(isBreak) {
+    playAlarmSound();
+    
+    const notification = document.getElementById('alarmNotification');
+    const title = document.getElementById('alarmTitle');
+    const message = document.getElementById('alarmMessage');
+    
+    if (isBreak) {
+        title.textContent = '🎉 휴식 시간입니다!';
+        message.textContent = '잠시 쉬어가세요. 스트레칭하고 눈을 쉬게 해주세요.';
+    } else {
+        title.textContent = '💪 작업 시간입니다!';
+        message.textContent = '다시 집중할 시간입니다. 화이팅!';
+    }
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'alarm-overlay';
+    overlay.id = 'alarmOverlay';
+    document.body.appendChild(overlay);
+    
+    setTimeout(() => {
+        overlay.classList.add('show');
+        notification.classList.add('show');
+    }, 10);
+}
+
+function closeAlarmNotification() {
+    stopAlarmSound();
+    
+    const notification = document.getElementById('alarmNotification');
+    const overlay = document.getElementById('alarmOverlay');
+    
+    notification.classList.remove('show');
+    if (overlay) {
+        overlay.classList.remove('show');
+        setTimeout(() => overlay.remove(), 300);
+    }
+    
+    // 휴식 시간이면 TODO 알림도 표시
+    const status = getCurrentStatus();
+    if (!status.isWorking) {
+        setTimeout(() => {
+            showMemoNotification();
+        }, 500);
+    }
+}
+
+// TODO 기능
 function toggleMemo() {
     memoOpen = !memoOpen;
     const memoPanel = document.getElementById('memoPanel');
@@ -339,22 +481,126 @@ function toggleMemo() {
     if (memoOpen) {
         memoPanel.classList.add('open');
         memoPanelOverlay.classList.add('show');
+        document.getElementById('todoInput').focus();
     } else {
         memoPanel.classList.remove('open');
         memoPanelOverlay.classList.remove('show');
     }
 }
 
-function showMemoNotification() {
-    const memoTextarea = document.getElementById('breakMemo');
-    breakMemo = memoTextarea ? memoTextarea.value.trim() : '';
+function handleTodoKeypress(event) {
+    if (event.key === 'Enter') {
+        addTodoItem();
+    }
+}
+
+function addTodoItem() {
+    const input = document.getElementById('todoInput');
+    const text = input.value.trim();
     
-    if (breakMemo === '') return;
+    if (text === '') return;
+    
+    const todo = {
+        id: Date.now(),
+        text: text,
+        completed: false
+    };
+    
+    // 배열 앞에 추가 (상단에 표시)
+    todoItems.unshift(todo);
+    saveTodos();
+    renderTodos();
+    
+    input.value = '';
+    input.focus();
+}
+
+function toggleTodo(id) {
+    const todo = todoItems.find(t => t.id === id);
+    if (todo) {
+        todo.completed = !todo.completed;
+        saveTodos();
+        renderTodos();
+    }
+}
+
+function deleteTodo(id) {
+    todoItems = todoItems.filter(t => t.id !== id);
+    saveTodos();
+    renderTodos();
+}
+
+function renderTodos() {
+    const todoList = document.getElementById('todoList');
+    todoList.innerHTML = '';
+    
+    todoItems.forEach(todo => {
+        const item = document.createElement('div');
+        item.className = 'todo-item' + (todo.completed ? ' completed' : '');
+        
+        const checkbox = document.createElement('div');
+        checkbox.className = 'todo-checkbox' + (todo.completed ? ' checked' : '');
+        checkbox.onclick = () => toggleTodo(todo.id);
+        
+        const text = document.createElement('div');
+        text.className = 'todo-text';
+        text.textContent = todo.text;
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'todo-delete';
+        deleteBtn.textContent = '×';
+        deleteBtn.onclick = () => deleteTodo(todo.id);
+        
+        item.appendChild(checkbox);
+        item.appendChild(text);
+        item.appendChild(deleteBtn);
+        
+        todoList.appendChild(item);
+    });
+}
+
+function saveTodos() {
+    localStorage.setItem('todoItems', JSON.stringify(todoItems));
+}
+
+function loadTodos() {
+    const saved = localStorage.getItem('todoItems');
+    if (saved) {
+        todoItems = JSON.parse(saved);
+        renderTodos();
+    }
+}
+
+function showMemoNotification() {
+    const incompleteTodos = todoItems.filter(t => !t.completed);
+    
+    if (incompleteTodos.length === 0) return;
     
     const notification = document.getElementById('memoNotification');
     const content = document.getElementById('memoNotificationContent');
     
-    content.textContent = breakMemo;
+    content.innerHTML = '';
+    
+    incompleteTodos.forEach(todo => {
+        const item = document.createElement('div');
+        item.className = 'todo-item';
+        item.style.marginBottom = '8px';
+        
+        const checkbox = document.createElement('div');
+        checkbox.className = 'todo-checkbox';
+        checkbox.onclick = () => {
+            toggleTodo(todo.id);
+            showMemoNotification();
+        };
+        
+        const text = document.createElement('div');
+        text.className = 'todo-text';
+        text.textContent = todo.text;
+        
+        item.appendChild(checkbox);
+        item.appendChild(text);
+        content.appendChild(item);
+    });
     
     const overlay = document.createElement('div');
     overlay.className = 'memo-overlay';
@@ -489,15 +735,6 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    const memoTextarea = document.getElementById('breakMemo');
-    if (memoTextarea) {
-        const savedMemo = localStorage.getItem('breakMemo');
-        if (savedMemo) {
-            memoTextarea.value = savedMemo;
-        }
-        
-        memoTextarea.addEventListener('input', () => {
-            localStorage.setItem('breakMemo', memoTextarea.value);
-        });
-    };
+    // TODO 목록 로드
+    loadTodos();
 })
