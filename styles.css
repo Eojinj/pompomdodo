@@ -11,7 +11,7 @@ body {
     overflow: hidden;
 }
 
-/* ============ 시작 화면 ============ */
+/* ============ ì‹œìž‘ í™”ë©´ ============ */
 #startScreen {
     display: flex;
     flex-direction: column;
@@ -115,7 +115,7 @@ body {
     transform: scale(1.02);
 }
 
-/* ============ 메인 게임 화면 ============ */
+/* ============ ë©”ì¸ ê²Œìž„ í™”ë©´ ============ */
 #gameScreen {
     display: none;
     height: 100vh;
@@ -257,7 +257,7 @@ body {
     height: 100%;
 }
 
-/* ============ 설정 패널 ============ */
+/* ============ ì„¤ì • íŒ¨ë„ ============ */
 .settings-panel {
     position: fixed;
     top: 50%;
@@ -451,7 +451,7 @@ body {
     pointer-events: auto;
 }
 
-/* ============ 메모 패널 ============ */
+/* ============ ë©”ëª¨ íŒ¨ë„ ============ */
 .memo-panel {
     position: fixed;
     bottom: -100%;
@@ -518,35 +518,148 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 15px;
     overflow: hidden;
 }
 
-.memo-textarea {
+.todo-list-container {
     flex: 1;
-    padding: 15px;
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 12px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    backdrop-filter: blur(10px);
+}
+
+.todo-list-container::-webkit-scrollbar {
+    display: none;
+}
+
+.todo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.todo-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s;
+}
+
+.todo-item:last-child {
+    border-bottom: none;
+}
+
+.todo-item:hover {
+    padding-left: 4px;
+}
+
+.todo-item.completed {
+    opacity: 0.5;
+}
+
+.todo-checkbox {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.todo-checkbox:hover {
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+.todo-checkbox.checked {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+.todo-checkbox.checked::after {
+    content: '✓';
+    color: #546e7a;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.todo-text {
+    flex: 1;
+    color: white;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.todo-item.completed .todo-text {
+    text-decoration: line-through;
+}
+
+.todo-delete {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    margin-left: 0;
+}
+
+.todo-delete:hover {
+    background: rgba(255, 100, 100, 0.3);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.todo-input-container {
+    width: 100%;
+}
+
+.todo-input {
+    width: 100%;
+    padding: 12px 15px;
     border: 1px solid rgba(255, 255, 255, 0.3);
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     font-size: 14px;
     outline: none;
-    resize: none;
     color: white;
     backdrop-filter: blur(10px);
-    font-family: inherit;
-    line-height: 1.6;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    transition: all 0.3s;
 }
 
-.memo-textarea::-webkit-scrollbar {
-    display: none;
-}
-
-.memo-textarea::placeholder {
+.todo-input::placeholder {
     color: rgba(255, 255, 255, 0.5);
 }
 
+.todo-input:focus {
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.memo-info {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+}
 .memo-info {
     font-size: 12px;
     color: rgba(255, 255, 255, 0.7);
@@ -572,7 +685,7 @@ body {
     pointer-events: auto;
 }
 
-/* ============ 메모 알림 ============ */
+/* ============ ë©”ëª¨ ì•Œë¦¼ ============ */
 .memo-notification {
     position: fixed;
     top: 50%;
@@ -642,7 +755,7 @@ body {
 }
 
 .memo-notification-content:empty::before {
-    content: "메모가 없습니다";
+    content: "ë©”ëª¨ê°€ ì—†ìŠµë‹ˆë‹¤";
     color: rgba(255, 255, 255, 0.5);
     font-style: italic;
 }
@@ -665,7 +778,7 @@ body {
     pointer-events: auto;
 }
 
-/* ============ 채팅 영역 ============ */
+/* ============ ì±„íŒ… ì˜ì—­ ============ */
 .chat-area {
     position: absolute;
     top: 0;
@@ -814,4 +927,108 @@ body {
 
 .chat-input-inline .chat-send:active {
     transform: scale(0.95);
+}
+/* ============ 알람 모달 ============ */
+.alarm-notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 90%;
+    max-width: 400px;
+    background: rgba(255, 107, 107, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    padding: 40px 30px;
+    z-index: 4000;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    text-align: center;
+}
+
+.alarm-notification.show {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+    25% { transform: translate(-50%, -50%) scale(1) rotate(-5deg); }
+    75% { transform: translate(-50%, -50%) scale(1) rotate(5deg); }
+}
+
+.alarm-icon {
+    font-size: 64px;
+    animation: ring 1s ease-in-out infinite;
+}
+
+@keyframes ring {
+    0%, 100% { transform: rotate(0deg); }
+    10%, 30% { transform: rotate(-15deg); }
+    20%, 40% { transform: rotate(15deg); }
+    50% { transform: rotate(0deg); }
+}
+
+.alarm-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.alarm-message {
+    font-size: 16px;
+    color: white;
+    line-height: 1.6;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.alarm-confirm-btn {
+    padding: 12px 40px;
+    background: white;
+    color: #FF6B6B;
+    border: none;
+    border-radius: 25px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    margin-top: 10px;
+}
+
+.alarm-confirm-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+.alarm-confirm-btn:active {
+    transform: scale(0.95);
+}
+
+.alarm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 3999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.alarm-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
 }
