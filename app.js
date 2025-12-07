@@ -1,3 +1,158 @@
+// ============ Firebase 초기화 ============
+let firebaseInitialized = false;
+let database = null;
+let currentServerRef = null;
+let usersRef = null;
+let messagesRef = null;
+let userRef = null;
+let connectedRef = null;            // Firebase 연결 상태(.info/connected)
+let beforeUnloadHandlerAdded = false; // beforeunload 중복 등록 방지
+
+
+// Firebase 초기화 함수
+function initializeFirebase() {
+    try {
+        if (typeof firebase !== 'undefined' && window.firebaseConfig) {
+            firebase.initializeApp(window.firebaseConfig);
+            database = firebase.database();
+            firebaseInitialized = true;
+            console.log('Firebase 초기화 완료');
+            return true;
+        } else {
+            console.warn('Firebase가 로드되지 않았거나 설정이 없습니다. 로컬 모드로 실행됩니다.');
+            return false;
+        }
+    } catch (error) {
+        console.error('Firebase 초기화 실패:', error);
+        return false;
+    }
+}
+
+// ============ 사용자 식별 시스템 ============
+// 사용자 고유 ID 생성 또는 불러오기
+function getOrCreateUserId() {
+    let userId = localStorage.getItem('userId');
+    if (!userId) {
+        // 고유 ID 생성: 타임스탬프 + 랜덤 문자열
+        userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('userId', userId);
+    }
+    return userId;
+}
+
+// 사용자 ID 초기화 (내부적으로만 사용, 사용자에게는 보이지 않음)
+const userId = getOrCreateUserId();
+// 서버 연동 시 이 ID를 사용하여 사용자를 식별합니다
+
+// ============ 설정 저장/불러오기 시스템 ============
+// 저장할 설정 객체
+const userSettings = {
+    selectedServer: '1',
+    selectedPomodoroType: 25,
+    userName: '',
+    sessionGoal: '',
+    userCharacter: '🐠',
+    userColor: '#4DD0E1',
+    lastSaved: null
+};
+
+// 설정 저장 함수
+function saveUserSettings() {
+    userSettings.lastSaved = new Date().toISOString();
+    localStorage.setItem('userSettings', JSON.stringify(userSettings));
+    // 디버깅용 로그 (필요시 주석 해제)
+    // console.log('사용자 설정이 저장되었습니다:', userSettings);
+}
+
+// 설정 불러오기 함수
+function loadUserSettings() {
+    const saved = localStorage.getItem('userSettings');
+    if (saved) {
+        try {
+            const loaded = JSON.parse(saved);
+            // 저장된 설정을 현재 설정에 적용
+            Object.assign(userSettings, loaded);
+            
+            // 전역 변수에 적용
+            selectedServer = userSettings.selectedServer;
+            selectedPomodoroType = userSettings.selectedPomodoroType;
+            WORK_DURATION = userSettings.selectedPomodoroType === 25 ? 25 : 50;
+            BREAK_DURATION = userSettings.selectedPomodoroType === 25 ? 5 : 10;
+            CYCLE_DURATION = userSettings.selectedPomodoroType === 25 ? 30 : 60;
+            
+            userName = userSettings.userName || '익명' + Math.floor(Math.random() * 1000);
+            sessionGoal = userSettings.sessionGoal || '';
+            userCharacter = userSettings.userCharacter || '🐠';
+            userColor = userSettings.userColor || '#4DD0E1';
+            
+            // UI에 반영 (닉네임과 목표는 제외)
+            applySettingsToUI();
+            
+            // 디버깅용 로그 (필요시 주석 해제)
+            // console.log('사용자 설정이 복원되었습니다:', userSettings);
+        } catch (e) {
+            console.error('설정 불러오기 실패:', e);
+        }
+    } else {
+        // 기본값 사용
+        userName = '익명' + Math.floor(Math.random() * 1000);
+    }
+}
+
+// UI에 설정 적용
+function applySettingsToUI() {
+    // 닉네임은 저장되어 있고 기본값이 아닐 때만 자동으로 불러오기
+    const nicknameInput = document.getElementById('nicknameInput');
+    if (nicknameInput && userName && !userName.startsWith('익명')) {
+        nicknameInput.value = userName;
+    }
+    
+    // 목표는 저장되어 있으면 자동으로 불러오기
+    const goalInput = document.getElementById('sessionGoalInput');
+    if (goalInput && sessionGoal) {
+        goalInput.value = sessionGoal;
+    }
+    
+    // 서버 선택 버튼
+    document.querySelectorAll('.option-btn[data-server]').forEach(btn => {
+        btn.classList.remove('selected');
+        if (btn.dataset.server === selectedServer) {
+            btn.classList.add('selected');
+        }
+    });
+    
+    // 뽀모도로 타입 버튼
+    document.querySelectorAll('.option-btn[data-pomodoro]').forEach(btn => {
+        btn.classList.remove('selected');
+        if (parseInt(btn.dataset.pomodoro) === selectedPomodoroType) {
+            btn.classList.add('selected');
+        }
+    });
+    
+    // 캐릭터 선택
+    const characterMap = {
+        '🐠': 'fish',
+        '🐙': 'octopus',
+        '🐢': 'turtle',
+        '🐋': 'whale',
+        '🐬': 'dolphin',
+        '🦀': 'crab'
+    };
+    const characterSelect = document.getElementById('characterSelect');
+    if (characterSelect) {
+        const characterValue = characterMap[userCharacter] || 'fish';
+        characterSelect.value = characterValue;
+    }
+    
+    // 색상 선택
+    document.querySelectorAll('.color-option').forEach(option => {
+        option.classList.remove('selected');
+        if (option.dataset.color === userColor) {
+            option.classList.add('selected');
+        }
+    });
+}
+
 // 설정 변수
 let selectedServer = '1';
 let selectedPomodoroType = 25;
@@ -146,9 +301,12 @@ document.querySelectorAll('.option-btn').forEach(btn => {
         
         if (this.dataset.server) {
             selectedServer = this.dataset.server;
+            userSettings.selectedServer = selectedServer;
+            saveUserSettings();
         }
         if (this.dataset.pomodoro) {
             selectedPomodoroType = parseInt(this.dataset.pomodoro);
+            userSettings.selectedPomodoroType = selectedPomodoroType;
             if (selectedPomodoroType === 25) {
                 WORK_DURATION = 25;
                 BREAK_DURATION = 5;
@@ -158,6 +316,7 @@ document.querySelectorAll('.option-btn').forEach(btn => {
                 BREAK_DURATION = 10;
                 CYCLE_DURATION = 60;
             }
+            saveUserSettings();
         }
     });
 });
@@ -174,9 +333,14 @@ function startGame() {
     }
     
     userName = nickname;
+    userSettings.userName = userName;
     
     const goalInput = document.getElementById('sessionGoalInput');
     sessionGoal = goalInput.value.trim();
+    userSettings.sessionGoal = sessionGoal;
+    
+    // 설정 저장
+    saveUserSettings();
     
     document.getElementById('startScreen').style.display = 'none';
     document.getElementById('gameScreen').style.display = 'flex';
@@ -193,8 +357,14 @@ function startGame() {
 // 홈으로 돌아가기
 function goToHome() {
     if (confirm('메인 화면으로 돌아가시겠습니까?')) {
+        // Firebase 연결 해제
+        disconnectFromServer();
+        
         document.getElementById('gameScreen').style.display = 'none';
         document.getElementById('startScreen').style.display = 'flex';
+        
+        // 저장된 설정으로 입력 필드 복원
+        applySettingsToUI();
         
         const chatMessages = document.getElementById('chatMessages');
         chatMessages.innerHTML = '<div class="system-message">채팅방에 입장했습니다</div>';
@@ -203,10 +373,132 @@ function goToHome() {
     }
 }
 
+// ============ Firebase 실시간 기능 ============
+// 서버에 연결
+function connectToServer() {
+    // 기존 연결이 있으면 먼저 해제 (중복 방지)
+    if (usersRef || messagesRef || connectedRef) {
+        disconnectFromServer();
+    }
+    
+    if (!firebaseInitialized || !database) {
+        console.log('Firebase가 초기화되지 않아 로컬 모드로 실행됩니다.');
+        updateOnlineCount(1); // 로컬 모드: 1명으로 표시
+        return;
+    }
+    
+    const serverId = `server${selectedServer}`;
+    currentServerRef = database.ref(`servers/${serverId}`);
+    usersRef = currentServerRef.child('users');
+    messagesRef = currentServerRef.child('messages');
+    userRef = usersRef.child(userId);
+    
+    // Firebase 연결 상태(.info/connected) 감지
+    connectedRef = database.ref('.info/connected');
+    connectedRef.on('value', (snapshot) => {
+        const connected = snapshot.val();
+        if (connected === true) {
+            // 연결되었을 때: onDisconnect로 정리 예약
+            if (userRef) {
+                userRef.onDisconnect().remove();
+            }
+
+            // 사용자 정보 저장 / 갱신
+            // joinedAt은 처음 한 번만 설정하고, 이후에는 업데이트하지 않음
+            userRef.once('value', (userSnapshot) => {
+                const userData = userSnapshot.val();
+                if (!userData || !userData.joinedAt) {
+                    // 처음 입장하는 경우
+                    userRef.set({
+                        userId: userId,
+                        userName: userName,
+                        character: userCharacter,
+                        color: userColor,
+                        joinedAt: firebase.database.ServerValue.TIMESTAMP
+                    });
+                } else {
+                    // 이미 입장한 경우 (재연결 등) - joinedAt은 유지하고 나머지만 업데이트
+                    userRef.update({
+                        userId: userId,
+                        userName: userName,
+                        character: userCharacter,
+                        color: userColor
+                    });
+                }
+            });
+        }
+    });
+    
+    // 접속자 수 실시간 감지
+    usersRef.on('value', (snapshot) => {
+        const users = snapshot.val() || {};
+        const onlineCount = Object.keys(users).length;
+        updateOnlineCount(onlineCount);
+    });
+    
+    // 메시지 실시간 감지
+    messagesRef.limitToLast(50).on('child_added', (snapshot) => {
+        const message = snapshot.val();
+        const messageId = snapshot.key;
+        
+        // 내가 보낸 메시지가 아니고, 아직 표시하지 않은 메시지만 표시
+        if (message && message.userId !== userId && !sentMessageIds.has(messageId)) {
+            addMessage(message.userName, message.content, false);
+        }
+    });
+    
+    
+    // 페이지 종료 시 사용자 제거 (한 번만 등록)
+    if (!beforeUnloadHandlerAdded) {
+        window.addEventListener('beforeunload', () => {
+            disconnectFromServer();
+        });
+        beforeUnloadHandlerAdded = true;
+    }
+}
+
+// 서버 연결 해제
+function disconnectFromServer() {
+    // presence 연결 상태 리스너 제거
+    if (connectedRef) {
+        connectedRef.off();
+        connectedRef = null;
+    }
+
+    // 내 유저 노드 제거
+    if (userRef) {
+        userRef.remove();
+        userRef = null;
+    }
+
+    // 리스너 해제
+    if (usersRef) {
+        usersRef.off();
+        usersRef = null;
+    }
+    if (messagesRef) {
+        messagesRef.off();
+        messagesRef = null;
+    }
+
+    currentServerRef = null;
+}
+
+// 접속자 수 업데이트 (DOM에만 반영)
+function updateOnlineCount(count) {
+    const onlineCountElement = document.getElementById('onlineCount');
+    if (onlineCountElement) {
+        onlineCountElement.textContent = count != null ? count : 1;
+    }
+}
+
 // 게임 초기화
 function initGame() {
     characters = [];
     characters.push(new Character(userCharacter, userColor, 1));
+    
+    // Firebase 연결
+    connectToServer();
     
     animate();
     updateUI();
@@ -216,6 +508,7 @@ function initGame() {
 // 캔버스 크기 조정
 function resizeCanvas() {
     const container = document.querySelector('.field-container');
+    if (!container) return;
     canvas.width = container.clientWidth;
     canvas.height = container.clientHeight;
 }
@@ -532,6 +825,7 @@ function deleteTodo(id) {
 
 function renderTodos() {
     const todoList = document.getElementById('todoList');
+    if (!todoList) return;
     todoList.innerHTML = '';
     
     todoItems.forEach(todo => {
@@ -625,26 +919,34 @@ function closeMemoNotification() {
 }
 
 // 채팅 기능
+let sentMessageIds = new Set(); // 중복 메시지 방지
+
 function sendMessage() {
     const input = document.getElementById('chatInput');
     const message = input.value.trim();
     
     if (message === '') return;
     
-    addMessage(userName, message, true);
-    input.value = '';
+    // Firebase에 메시지 저장
+    if (firebaseInitialized && messagesRef) {
+        const messageRef = messagesRef.push({
+            userId: userId,
+            userName: userName,
+            content: message,
+            timestamp: firebase.database.ServerValue.TIMESTAMP,
+            serverId: `server${selectedServer}`
+        });
+        
+        // 내가 보낸 메시지는 즉시 표시하고 ID 저장 (중복 방지)
+        const messageId = messageRef.key;
+        sentMessageIds.add(messageId);
+        addMessage(userName, message, true);
+    } else {
+        // 로컬 모드: 즉시 표시
+        addMessage(userName, message, true);
+    }
     
-    setTimeout(() => {
-        const responses = [
-            '화이팅!',
-            '같이 공부해요~',
-            '집중 모드 ON!',
-            '잠시만 쉬었다 올게요',
-            '좋은 하루 보내세요!'
-        ];
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-        addMessage('익명' + Math.floor(Math.random() * 1000), randomResponse, false);
-    }, 1000 + Math.random() * 2000);
+    input.value = '';
 }
 
 function addMessage(author, content, isOwn) {
@@ -689,6 +991,15 @@ function changeNickname() {
     
     const oldNickname = userName;
     userName = newNickname;
+    userSettings.userName = userName;
+    
+    // 설정 저장
+    saveUserSettings();
+    
+    // Firebase에 닉네임 업데이트
+    if (firebaseInitialized && userRef) {
+        userRef.update({ userName: userName });
+    }
     
     const messagesDiv = document.getElementById('chatMessages');
     const systemMsg = document.createElement('div');
@@ -703,35 +1014,69 @@ function changeNickname() {
 function changeGoal() {
     const newGoal = document.getElementById('goalChange').value.trim();
     sessionGoal = newGoal;
+    userSettings.sessionGoal = sessionGoal;
+    
+    // 설정 저장
+    saveUserSettings();
+    
     alert('목표가 변경되었습니다!');
 }
 
-// 캐릭터 커스터마이징
-document.getElementById('characterSelect').addEventListener('change', (e) => {
-    const emojiMap = {
-        'fish': '🐠',
-        'octopus': '🐙',
-        'turtle': '🐢',
-        'whale': '🐋',
-        'dolphin': '🐬',
-        'crab': '🦀'
-    };
-    userCharacter = emojiMap[e.target.value];
-    if (characters.length > 0) {
-        characters[0].emoji = userCharacter;
-    }
-});
-
 window.addEventListener('DOMContentLoaded', () => {
+    // Firebase 초기화
+    initializeFirebase();
+    
+    // 사용자 설정 불러오기 (페이지 로드 시)
+    loadUserSettings();
+    
+    // 캐릭터 커스터마이징 (DOMContentLoaded 후에 등록)
+    const characterSelect = document.getElementById('characterSelect');
+    if (characterSelect) {
+        characterSelect.addEventListener('change', (e) => {
+            const emojiMap = {
+                'fish': '🐠',
+                'octopus': '🐙',
+                'turtle': '🐢',
+                'whale': '🐋',
+                'dolphin': '🐬',
+                'crab': '🦀'
+            };
+            userCharacter = emojiMap[e.target.value];
+            userSettings.userCharacter = userCharacter;
+            
+            if (characters.length > 0) {
+                characters[0].emoji = userCharacter;
+            }
+            
+            // Firebase에 캐릭터 업데이트
+            if (firebaseInitialized && userRef) {
+                userRef.update({ character: userCharacter });
+            }
+            
+            // 설정 저장
+            saveUserSettings();
+        });
+    }
+    
     document.querySelectorAll('.color-option').forEach(option => {
         option.addEventListener('click', (e) => {
             document.querySelectorAll('.color-option').forEach(opt => 
                 opt.classList.remove('selected'));
             e.target.classList.add('selected');
             userColor = e.target.dataset.color;
+            userSettings.userColor = userColor;
+            
             if (characters.length > 0) {
                 characters[0].color = userColor;
             }
+            
+            // Firebase에 색상 업데이트
+            if (firebaseInitialized && userRef) {
+                userRef.update({ color: userColor });
+            }
+            
+            // 설정 저장
+            saveUserSettings();
         });
     });
     

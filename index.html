@@ -220,7 +220,13 @@
             <button class="alarm-confirm-btn" onclick="closeAlarmNotification()">확인</button>
         </div>
     </div>
+    <!-- Firebase SDK들 (CDN) -->
+    <!-- v9 compat 또는 v8 스타일: firebase 전역 객체를 제공하는 버전 -->
+    <script src="https://www.gstatic.com/firebasejs/12.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.6.0/firebase-database-compat.js"></script>
 
+    <!-- window.firebaseConfig 정의 -->
+    <script src="firebase-config.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
