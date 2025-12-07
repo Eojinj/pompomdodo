@@ -923,10 +923,14 @@ function showMemoNotification() {
         content.appendChild(item);
     });
     
-    const overlay = document.createElement('div');
-    overlay.className = 'memo-overlay';
-    overlay.id = 'memoOverlay';
-    document.body.appendChild(overlay);
+    // 기존 오버레이가 있는지 확인하고, 없으면 생성
+    let overlay = document.getElementById('memoOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'memo-overlay';
+        overlay.id = 'memoOverlay';
+        document.body.appendChild(overlay);
+    }
     
     setTimeout(() => {
         overlay.classList.add('show');
