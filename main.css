@@ -1,3 +1,42 @@
+/* ============ 테마 설정 ============ */
+/* 라이트 모드 (기본) */
+:root {
+    --bg-gradient-start: #87CEEB;
+    --bg-gradient-mid: #B0E0F6;
+    --bg-gradient-end: #E0F6FF;
+    --text-primary: #2C3E50;
+    --text-secondary: #546E7A;
+    --canvas-gradient-start: #87CEEB;
+    --canvas-gradient-mid: #B0E0F6;
+    --canvas-gradient-end: #C8E6F5;
+    --bubble-color: rgba(255, 255, 255, 0.3);
+    --timer-text: #2C3E50;
+    --timer-shadow: rgba(0, 0, 0, 0.1);
+    --info-text: #2C3E50;
+    --info-shadow: rgba(0, 0, 0, 0.1);
+    --chat-text: #2C3E50;
+    --chat-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* 다크 모드 */
+body.dark-mode {
+    --bg-gradient-start: #1a1a1a;
+    --bg-gradient-mid: #2d2d2d;
+    --bg-gradient-end: #3a3a3a;
+    --text-primary: #E0E0E0;
+    --text-secondary: #B0B0B0;
+    --canvas-gradient-start: #0a0a0a;
+    --canvas-gradient-mid: #1a1a1a;
+    --canvas-gradient-end: #2a2a2a;
+    --bubble-color: rgba(255, 255, 255, 0.05);
+    --timer-text: #E0E0E0;
+    --timer-shadow: rgba(0, 0, 0, 0.5);
+    --info-text: #E0E0E0;
+    --info-shadow: rgba(0, 0, 0, 0.5);
+    --chat-text: #E0E0E0;
+    --chat-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+}
+
 /* ============ 기본 리셋 및 공통 스타일 ============ */
 * {
     margin: 0;
@@ -7,9 +46,10 @@
 
 body {
     font-family: 'Arial', sans-serif;
-    background: linear-gradient(to bottom, #2c3e50, #34495e, #4a5f7f);
+    background: linear-gradient(to bottom, var(--bg-gradient-start), var(--bg-gradient-mid), var(--bg-gradient-end));
     height: 100vh;
     overflow: hidden;
+    transition: background 0.3s ease;
 }
 
 /* ============ 시작 화면 ============ */
@@ -174,18 +214,18 @@ body {
 .timer-display {
     font-size: 36px;
     font-weight: 900;
-    color: white;
-    text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+    color: var(--timer-text);
+    text-shadow: 2px 2px 8px var(--timer-shadow);
 }
 
 .timer-label {
     font-size: 14px;
-    color: white;
+    color: var(--info-text);
     font-weight: 700;
     display: flex;
     align-items: center;
     gap: 8px;
-    text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+    text-shadow: 1px 1px 4px var(--info-shadow);
 }
 
 .status-indicator {
@@ -214,10 +254,10 @@ body {
     display: flex;
     gap: 20px;
     font-size: 13px;
-    color: white;
+    color: var(--info-text);
     font-weight: 600;
     align-items: center;
-    text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+    text-shadow: 1px 1px 4px var(--info-shadow);
 }
 
 .settings-toggle-top {
@@ -295,8 +335,8 @@ body {
 
 .chat-messages-inline .message {
     font-size: 14px;
-    color: white;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+    color: var(--chat-text);
+    text-shadow: var(--chat-shadow);
     line-height: 1.6;
     word-wrap: break-word;
     background: none;
@@ -305,7 +345,7 @@ body {
 
 .chat-messages-inline .message-author {
     font-weight: bold;
-    color: white;
+    color: var(--chat-text);
     background: none;
     display: inline;
 }
@@ -315,17 +355,17 @@ body {
     background: none;
     padding: 0;
     border-radius: 0;
-    color: white;
+    color: var(--chat-text);
     max-width: 100%;
 }
 
 .chat-messages-inline .system-message {
     text-align: center;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--text-secondary);
     font-size: 12px;
     padding: 5px;
     font-style: italic;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    text-shadow: var(--chat-shadow);
 }
 
 .chat-input-inline {

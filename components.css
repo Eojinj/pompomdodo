@@ -192,6 +192,46 @@
     pointer-events: auto;
 }
 
+/* ============ 테마 토글 버튼 ============ */
+.theme-toggle-container {
+    width: 100%;
+}
+
+.theme-toggle-btn {
+    width: 100%;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+}
+
+.theme-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.02);
+}
+
+.theme-toggle-btn:active {
+    transform: scale(0.98);
+}
+
+#themeIcon {
+    font-size: 24px;
+}
+
+#themeText {
+    font-size: 16px;
+}
+
 /* ============ 메모 패널 (라이트 버전) ============ */
 .memo-panel {
     position: fixed;

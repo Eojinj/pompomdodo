@@ -53,6 +53,7 @@ const userSettings = {
     sessionGoal: '',
     userCharacter: '🐠',
     userColor: '#4DD0E1',
+    theme: 'light', // 테마 설정 추가
     lastSaved: null
 };
 
@@ -85,6 +86,15 @@ function loadUserSettings() {
             sessionGoal = userSettings.sessionGoal || '';
             userCharacter = userSettings.userCharacter || '🐠';
             userColor = userSettings.userColor || '#4DD0E1';
+            
+            // 테마 적용
+            if (userSettings.theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                updateThemeUI('dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                updateThemeUI('light');
+            }
             
             // UI에 반영 (닉네임과 목표는 제외)
             applySettingsToUI();
@@ -521,15 +531,25 @@ function resizeCanvas() {
 
 // 애니메이션 루프
 function animate() {
+    // 테마에 따라 그라디언트 색상 변경
+    const isDark = document.body.classList.contains('dark-mode');
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, '#006994');
-    gradient.addColorStop(0.5, '#0288d1');
-    gradient.addColorStop(1, '#01579b');
+    
+    if (isDark) {
+        gradient.addColorStop(0, '#0a0a0a');
+        gradient.addColorStop(0.5, '#1a1a1a');
+        gradient.addColorStop(1, '#2a2a2a');
+    } else {
+        gradient.addColorStop(0, '#87CEEB');
+        gradient.addColorStop(0.5, '#B0E0F6');
+        gradient.addColorStop(1, '#C8E6F5');
+    }
+    
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // 물방울 개수 줄이고 투명도 낮춤
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.3)';
     for (let i = 0; i < 3; i++) {
         const x = Math.random() * canvas.width;
         const y = Math.random() * canvas.height;
@@ -1063,6 +1083,42 @@ function changeGoal() {
     saveUserSettings();
     
     alert('목표가 변경되었습니다!');
+}
+
+// 테마 전환 함수
+function toggleTheme() {
+    const isDark = document.body.classList.contains('dark-mode');
+    
+    if (isDark) {
+        // 라이트 모드로 전환
+        document.body.classList.remove('dark-mode');
+        userSettings.theme = 'light';
+        updateThemeUI('light');
+    } else {
+        // 다크 모드로 전환
+        document.body.classList.add('dark-mode');
+        userSettings.theme = 'dark';
+        updateThemeUI('dark');
+    }
+    
+    // 설정 저장
+    saveUserSettings();
+}
+
+// 테마 UI 업데이트
+function updateThemeUI(theme) {
+    const themeIcon = document.getElementById('themeIcon');
+    const themeText = document.getElementById('themeText');
+    
+    if (themeIcon && themeText) {
+        if (theme === 'dark') {
+            themeIcon.textContent = '🌙';
+            themeText.textContent = '다크 모드';
+        } else {
+            themeIcon.textContent = '☀️';
+            themeText.textContent = '라이트 모드';
+        }
+    }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
