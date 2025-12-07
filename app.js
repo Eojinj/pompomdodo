@@ -79,6 +79,7 @@ function loadUserSettings() {
             WORK_DURATION = userSettings.selectedPomodoroType === 25 ? 25 : 50;
             BREAK_DURATION = userSettings.selectedPomodoroType === 25 ? 5 : 10;
             CYCLE_DURATION = userSettings.selectedPomodoroType === 25 ? 30 : 60;
+            maxChatCount = userSettings.selectedPomodoroType === 25 ? 5 : 10; // 채팅 횟수 설정
             
             userName = userSettings.userName || '익명' + Math.floor(Math.random() * 1000);
             sessionGoal = userSettings.sessionGoal || '';
@@ -311,10 +312,12 @@ document.querySelectorAll('.option-btn').forEach(btn => {
                 WORK_DURATION = 25;
                 BREAK_DURATION = 5;
                 CYCLE_DURATION = 30;
+                maxChatCount = 5; // 25분: 5번
             } else {
                 WORK_DURATION = 50;
                 BREAK_DURATION = 10;
                 CYCLE_DURATION = 60;
+                maxChatCount = 10; // 50분: 10번
             }
             saveUserSettings();
         }
@@ -500,6 +503,9 @@ function initGame() {
     // Firebase 연결
     connectToServer();
     
+    // 채팅 카운트 표시 초기화
+    updateChatCountDisplay();
+    
     animate();
     updateUI();
     setInterval(updateUI, 1000);
@@ -615,6 +621,7 @@ function updateUI() {
         if (lastStatus === false && !memoNotificationShown) {
             showAlarmNotification(false);
             memoNotificationShown = true;
+            resetChatCount(); // 작업 시작 시 채팅 카운트 리셋
         }
     } else {
         statusIndicator.className = 'status-indicator status-breaking';
@@ -918,14 +925,26 @@ function closeMemoNotification() {
     }
 }
 
-// 채팅 기능
+// ============ 채팅 기능 (횟수 제한 추가) ============
 let sentMessageIds = new Set(); // 중복 메시지 방지
+let chatCount = 0; // 현재 세션의 채팅 횟수
+let maxChatCount = 5; // 세션당 최대 채팅 횟수 (25분: 5번, 50분: 10번)
 
 function sendMessage() {
     const input = document.getElementById('chatInput');
     const message = input.value.trim();
     
     if (message === '') return;
+    
+    // 채팅 횟수 제한 확인
+    if (chatCount >= maxChatCount) {
+        alert(`이번 세션에는 최대 ${maxChatCount}번까지만 채팅할 수 있습니다. 다음 세션을 기다려주세요!`);
+        return;
+    }
+    
+    // 채팅 횟수 증가
+    chatCount++;
+    updateChatCountDisplay();
     
     // Firebase에 메시지 저장
     if (firebaseInitialized && messagesRef) {
@@ -963,6 +982,30 @@ function addMessage(author, content, isOwn) {
 function handleChatKeypress(event) {
     if (event.key === 'Enter') {
         sendMessage();
+    }
+}
+
+// 채팅 카운트 표시 업데이트
+function updateChatCountDisplay() {
+    const input = document.getElementById('chatInput');
+    if (input) {
+        const remaining = maxChatCount - chatCount;
+        if (remaining > 0) {
+            input.placeholder = `메시지를 입력하세요... (${remaining}/${maxChatCount})`;
+        } else {
+            input.placeholder = '채팅 횟수를 모두 사용했습니다';
+            input.disabled = true;
+        }
+    }
+}
+
+// 세션 전환 시 채팅 카운트 리셋
+function resetChatCount() {
+    chatCount = 0;
+    const input = document.getElementById('chatInput');
+    if (input) {
+        input.disabled = false;
+        input.placeholder = `메시지를 입력하세요... (${maxChatCount}/${maxChatCount})`;
     }
 }
 
