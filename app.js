@@ -139,29 +139,6 @@ function applySettingsToUI() {
             btn.classList.add('selected');
         }
     });
-    
-    // 캐릭터 선택
-    const characterMap = {
-        '🐠': 'fish',
-        '🐙': 'octopus',
-        '🐢': 'turtle',
-        '🐋': 'whale',
-        '🐬': 'dolphin',
-        '🦀': 'crab'
-    };
-    const characterSelect = document.getElementById('characterSelect');
-    if (characterSelect) {
-        const characterValue = characterMap[userCharacter] || 'fish';
-        characterSelect.value = characterValue;
-    }
-    
-    // 색상 선택
-    document.querySelectorAll('.color-option').forEach(option => {
-        option.classList.remove('selected');
-        if (option.dataset.color === userColor) {
-            option.classList.add('selected');
-        }
-    });
 }
 
 // 설정 변수
@@ -1160,57 +1137,6 @@ window.addEventListener('DOMContentLoaded', () => {
     
     // 사용자 설정 불러오기 (페이지 로드 시)
     loadUserSettings();
-    
-    // 캐릭터 커스터마이징 (DOMContentLoaded 후에 등록)
-    const characterSelect = document.getElementById('characterSelect');
-    if (characterSelect) {
-        characterSelect.addEventListener('change', (e) => {
-            const emojiMap = {
-                'fish': '🐠',
-                'octopus': '🐙',
-                'turtle': '🐢',
-                'whale': '🐋',
-                'dolphin': '🐬',
-                'crab': '🦀'
-            };
-            userCharacter = emojiMap[e.target.value];
-            userSettings.userCharacter = userCharacter;
-            
-            if (characters.length > 0) {
-                characters[0].emoji = userCharacter;
-            }
-            
-            // Firebase에 캐릭터 업데이트
-            if (firebaseInitialized && userRef) {
-                userRef.update({ character: userCharacter });
-            }
-            
-            // 설정 저장
-            saveUserSettings();
-        });
-    }
-    
-    document.querySelectorAll('.color-option').forEach(option => {
-        option.addEventListener('click', (e) => {
-            document.querySelectorAll('.color-option').forEach(opt => 
-                opt.classList.remove('selected'));
-            e.target.classList.add('selected');
-            userColor = e.target.dataset.color;
-            userSettings.userColor = userColor;
-            
-            if (characters.length > 0) {
-                characters[0].color = userColor;
-            }
-            
-            // Firebase에 색상 업데이트
-            if (firebaseInitialized && userRef) {
-                userRef.update({ color: userColor });
-            }
-            
-            // 설정 저장
-            saveUserSettings();
-        });
-    });
     
     // TODO 목록 로드
     loadTodos();
