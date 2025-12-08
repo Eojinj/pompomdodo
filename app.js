@@ -308,8 +308,8 @@ class Character {
                 const imgHeight = fishImage.height;
                 const aspectRatio = imgWidth / imgHeight;
                 
-                // 크기 조정 (높이 기준으로 너비 계산)
-                const drawHeight = this.size;
+                // 크기 2배로 증가
+                const drawHeight = this.size * 2;
                 const drawWidth = drawHeight * aspectRatio;
                 
                 ctx.drawImage(
