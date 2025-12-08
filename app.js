@@ -201,6 +201,10 @@ let userColor = '#4DD0E1';
 // 캐릭터 배열
 let characters = [];
 
+// 이미지 로딩
+const fishImage = new Image();
+fishImage.src = 'images/basicFish.png';
+
 // 캐릭터 클래스
 class Character {
     constructor(emoji, color, id) {
@@ -211,6 +215,7 @@ class Character {
         this.y = Math.random() * (canvas.height - 50);
         this.size = 40;
         this.isSleeping = false;
+        this.imageLoaded = false;
         
         this.angle = Math.random() * Math.PI * 2;
         this.speed = 0.8;
@@ -222,6 +227,15 @@ class Character {
         this.waveAmplitude = 3;
         
         this.changeDirectionTimer = Math.floor(Math.random() * 180) + 120;
+        
+        // 이미지가 로드되면 플래그 설정
+        if (fishImage.complete) {
+            this.imageLoaded = true;
+        } else {
+            fishImage.onload = () => {
+                this.imageLoaded = true;
+            };
+        }
     }
 
     update() {
@@ -281,23 +295,40 @@ class Character {
         );
         ctx.fill();
 
-        ctx.font = `${this.size}px Arial`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        
         if (this.isSleeping) {
+            // 자는 중에는 이모티콘 표시
+            ctx.font = `${this.size}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
             ctx.fillText('💤', this.x + this.size/2 + waveX, this.y + this.size/2 + waveY);
         } else {
+            // 깨어있을 때는 이미지 또는 이모티콘 표시
             ctx.save();
             ctx.translate(this.x + this.size/2 + waveX, this.y + this.size/2 + waveY);
             
             const vx = Math.cos(this.angle);
-            // 물고기가 오른쪽으로 갈 때 반전 (원래와 반대)
+            // 물고기가 오른쪽으로 갈 때 반전
             if (vx > 0) {
                 ctx.scale(-1, 1);
             }
             
-            ctx.fillText(this.emoji, 0, 0);
+            if (this.imageLoaded && this.emoji === '🐠') {
+                // 🐠 이모티콘이면 이미지 사용
+                ctx.drawImage(
+                    fishImage, 
+                    -this.size/2, 
+                    -this.size/2, 
+                    this.size, 
+                    this.size
+                );
+            } else {
+                // 다른 이모티콘은 텍스트로 표시
+                ctx.font = `${this.size}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.emoji, 0, 0);
+            }
+            
             ctx.restore();
         }
     }
