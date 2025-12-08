@@ -254,6 +254,12 @@
     margin-bottom: 20px;
 }
 
+/* 다크모드 메모 패널 */
+body.dark-mode .memo-panel {
+    background: rgba(42, 42, 42, 0.95);
+    box-shadow: 0 -5px 25px rgba(0,0,0,0.5);
+}
+
 .memo-panel.open {
     bottom: 20px;
 }
@@ -269,6 +275,11 @@
     font-size: 18px;
     font-weight: bold;
     color: #333;
+}
+
+/* 다크모드 메모 헤더 */
+body.dark-mode .memo-header span {
+    color: #E0E0E0;
 }
 
 .close-memo {
@@ -287,10 +298,22 @@
     transition: all 0.2s;
 }
 
+/* 다크모드 닫기 버튼 */
+body.dark-mode .close-memo {
+    background: rgba(255, 255, 255, 0.1);
+    color: #B0B0B0;
+}
+
 .close-memo:hover {
     background: rgba(0, 0, 0, 0.1);
     color: #333;
     transform: rotate(90deg);
+}
+
+/* 다크모드 닫기 버튼 호버 */
+body.dark-mode .close-memo:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #E0E0E0;
 }
 
 .memo-content {
@@ -312,6 +335,13 @@
     scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }
 
+/* 다크모드 TODO 리스트 컨테이너 */
+body.dark-mode .todo-list-container {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
 .todo-list-container::-webkit-scrollbar {
     width: 6px;
 }
@@ -325,8 +355,18 @@
     border-radius: 3px;
 }
 
+/* 다크모드 스크롤바 */
+body.dark-mode .todo-list-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+}
+
 .todo-list-container::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.3);
+}
+
+/* 다크모드 스크롤바 호버 */
+body.dark-mode .todo-list-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
 }
 
 .todo-list {
@@ -342,6 +382,11 @@
     padding: 8px 0;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     transition: all 0.2s;
+}
+
+/* 다크모드 TODO 아이템 */
+body.dark-mode .todo-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .todo-item:last-child {
@@ -370,6 +415,11 @@
     justify-content: center;
 }
 
+/* 다크모드 체크박스 */
+body.dark-mode .todo-checkbox {
+    border: 2px solid #80DEEA;
+}
+
 .todo-checkbox:hover {
     border-color: #26C6DA;
 }
@@ -394,9 +444,19 @@
     word-wrap: break-word;
 }
 
+/* 다크모드 TODO 텍스트 */
+body.dark-mode .todo-text {
+    color: #E0E0E0;
+}
+
 .todo-item.completed .todo-text {
     text-decoration: line-through;
     color: #999;
+}
+
+/* 다크모드 완료된 TODO 텍스트 */
+body.dark-mode .todo-item.completed .todo-text {
+    color: #666;
 }
 
 .todo-delete {
@@ -414,6 +474,11 @@
     flex-shrink: 0;
     transition: all 0.2s;
     margin-left: 0;
+}
+
+/* 다크모드 삭제 버튼 */
+body.dark-mode .todo-delete {
+    color: #666;
 }
 
 .todo-delete:hover {
@@ -437,8 +502,20 @@
     transition: all 0.3s;
 }
 
+/* 다크모드 TODO 입력창 */
+body.dark-mode .todo-input {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    color: #E0E0E0;
+}
+
 .todo-input::placeholder {
     color: #999;
+}
+
+/* 다크모드 플레이스홀더 */
+body.dark-mode .todo-input::placeholder {
+    color: #666;
 }
 
 .todo-input:focus {
@@ -446,10 +523,20 @@
     box-shadow: 0 0 0 3px rgba(38, 198, 218, 0.1);
 }
 
+/* 다크모드 입력창 포커스 */
+body.dark-mode .todo-input:focus {
+    background: rgba(255, 255, 255, 0.15);
+}
+
 .memo-info {
     font-size: 12px;
     color: #999;
     text-align: center;
+}
+
+/* 다크모드 메모 정보 */
+body.dark-mode .memo-info {
+    color: #666;
 }
 
 .memo-panel-overlay {
