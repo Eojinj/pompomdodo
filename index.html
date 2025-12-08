@@ -10,15 +10,16 @@
 <body>
     <!-- 시작 화면 -->
     <div id="startScreen">
-        <h1>🐠 폼폼도도</h1>
+        <h1>🐠 <span data-i18n="title">폼폼도도</span></h1>
         
         <div class="start-options">
             <div class="option-group">
-                <h3>닉네임</h3>
+                <h3 data-i18n="nickname">닉네임</h3>
                 <input 
                     type="text" 
                     id="nicknameInput" 
                     class="nickname-input" 
+                    data-i18n-placeholder="nicknamePlaceholder"
                     placeholder="닉네임을 입력하세요" 
                     maxlength="12"
                     value=""
@@ -26,11 +27,12 @@
             </div>
 
             <div class="option-group">
-                <h3>오늘의 목표</h3>
+                <h3 data-i18n="goal">오늘의 목표</h3>
                 <input 
                     type="text" 
                     id="sessionGoalInput" 
                     class="nickname-input" 
+                    data-i18n-placeholder="goalPlaceholder"
                     placeholder="예: 수학 과제 3페이지 완료하기" 
                     maxlength="50"
                     value=""
@@ -38,39 +40,35 @@
             </div>
 
             <div class="option-group">
-                <h3>서버 선택</h3>
+                <h3 data-i18n="language">언어 설정</h3>
                 <div class="option-buttons">
-                    <div class="option-btn selected" data-server="1">
-                        서버 1<br>
-                        <small>한국</small>
+                    <div class="option-btn selected" data-language="ko">
+                        한국어<br>
+                        <small>Korean</small>
                     </div>
-                    <div class="option-btn" data-server="2">
-                        서버 2<br>
-                        <small>아시아</small>
-                    </div>
-                    <div class="option-btn" data-server="3">
-                        서버 3<br>
-                        <small>글로벌</small>
+                    <div class="option-btn" data-language="en">
+                        English<br>
+                        <small>영어</small>
                     </div>
                 </div>
             </div>
 
             <div class="option-group">
-                <h3>뽀모도로 유형</h3>
+                <h3 data-i18n="pomodoroType">뽀모도로 유형</h3>
                 <div class="option-buttons">
                     <div class="option-btn selected" data-pomodoro="25">
-                        기본형<br>
-                        <small>25분 작업 / 5분 휴식</small>
+                        <span data-i18n="basic">기본형</span><br>
+                        <small data-i18n="basic-desc">25분 작업 / 5분 휴식</small>
                     </div>
                     <div class="option-btn" data-pomodoro="50">
-                        집중형<br>
-                        <small>50분 작업 / 10분 휴식</small>
+                        <span data-i18n="focus">집중형</span><br>
+                        <small data-i18n="focus-desc">50분 작업 / 10분 휴식</small>
                     </div>
                 </div>
             </div>
 
             <button class="start-button" onclick="startGame()">
-                시작하기
+                <span data-i18n="start">시작하기</span>
             </button>
         </div>
     </div>
@@ -79,11 +77,13 @@
     <div id="gameScreen">
         <div class="top-bar">
             <div class="timer-section">
-                <button class="home-button" onclick="goToHome()" title="메인 화면으로">홈</button>
+                <button class="home-button" onclick="goToHome()" title="메인 화면으로">
+                    <span data-i18n="home">홈</span>
+                </button>
                 <div class="timer-info">
                     <div class="timer-label">
                         <span class="status-indicator status-working" id="statusIndicator"></span>
-                        <span id="statusText">작업 중</span>
+                        <span id="statusText" data-i18n="working">작업 중</span>
                     </div>
                     <div class="timer-display" id="timerDisplay">25:00</div>
                 </div>
@@ -91,7 +91,7 @@
             
             <div class="info-section">
                 <div id="nextBreak">--:--</div>
-                <div><span id="onlineCount">1</span>명</div>
+                <div><span id="onlineCount">1</span><span data-i18n="people">명</span></div>
                 <button class="settings-toggle-top" onclick="toggleSettings()">⚙️</button>
             </div>
         </div>
@@ -103,7 +103,7 @@
                 <!-- 채팅 영역 -->
                 <div class="chat-area">
                     <div class="chat-messages-inline" id="chatMessages">
-                        <div class="system-message">채팅방에 입장했습니다</div>
+                        <div class="system-message" data-i18n="chatWelcome">채팅방에 입장했습니다</div>
                     </div>
                     
                     <div class="chat-input-inline">
@@ -112,6 +112,7 @@
                             type="text" 
                             class="chat-input" 
                             id="chatInput" 
+                            data-i18n-placeholder="chatPlaceholder"
                             placeholder="메시지를 입력하세요..."
                             onkeypress="handleChatKeypress(event)"
                         >
@@ -125,41 +126,47 @@
         <div class="settings-overlay" id="settingsOverlay" onclick="toggleSettings()"></div>
         <div class="settings-panel" id="settingsPanel">
             <div class="settings-header">
-                <span>설정</span>
+                <span data-i18n="settings">설정</span>
                 <button class="close-settings" onclick="toggleSettings()">×</button>
             </div>
             
             <div class="settings-content">
                 <div class="setting-group">
-                    <label>닉네임</label>
+                    <label data-i18n="nickname">닉네임</label>
                     <input 
                         type="text" 
                         id="nicknameChange" 
                         class="setting-input" 
+                        data-i18n-placeholder="nicknamePlaceholder"
                         placeholder="닉네임을 입력하세요"
                         maxlength="12"
                     >
-                    <button class="setting-btn" onclick="changeNickname()">변경</button>
+                    <button class="setting-btn" onclick="changeNickname()">
+                        <span data-i18n="change">변경</span>
+                    </button>
                 </div>
 
                 <div class="setting-group">
-                    <label>오늘의 목표</label>
+                    <label data-i18n="goal">오늘의 목표</label>
                     <input 
                         type="text" 
                         id="goalChange" 
                         class="setting-input" 
+                        data-i18n-placeholder="goalPlaceholder"
                         placeholder="오늘의 목표를 입력하세요"
                         maxlength="50"
                     >
-                    <button class="setting-btn" onclick="changeGoal()">변경</button>
+                    <button class="setting-btn" onclick="changeGoal()">
+                        <span data-i18n="change">변경</span>
+                    </button>
                 </div>
 
                 <div class="setting-group">
-                    <label>테마 설정</label>
+                    <label data-i18n="themeSettings">테마 설정</label>
                     <div class="theme-toggle-container">
                         <button class="theme-toggle-btn" onclick="toggleTheme()">
                             <span id="themeIcon">☀️</span>
-                            <span id="themeText">라이트 모드</span>
+                            <span id="themeText" data-i18n="lightMode">라이트 모드</span>
                         </button>
                     </div>
                 </div>
@@ -170,7 +177,7 @@
         <div class="memo-panel-overlay" id="memoPanelOverlay" onclick="toggleMemo()"></div>
         <div class="memo-panel" id="memoPanel">
             <div class="memo-header">
-                <span>📝 쉬는 시간 TODO</span>
+                <span data-i18n="todoTitle">📝 쉬는 시간 TODO</span>
                 <button class="close-memo" onclick="toggleMemo()">×</button>
             </div>
             <div class="memo-content">
@@ -179,12 +186,13 @@
                         <!-- TODO 항목들이 여기에 추가됩니다 -->
                     </div>
                 </div>
-                <div class="memo-info">💡 쉬는 시간이 되면 자동으로 표시됩니다</div>
+                <div class="memo-info" data-i18n="todoInfo">💡 쉬는 시간이 되면 자동으로 표시됩니다</div>
                 <div class="todo-input-container">
                     <input 
                         type="text" 
                         id="todoInput" 
                         class="todo-input" 
+                        data-i18n-placeholder="todoPlaceholder"
                         placeholder="할 일을 입력하고 엔터를 누르세요..."
                         onkeypress="handleTodoKeypress(event)"
                     >
@@ -203,9 +211,11 @@
         <!-- 알람 모달 -->
         <div class="alarm-notification" id="alarmNotification">
             <div class="alarm-icon">⏰</div>
-            <div class="alarm-title" id="alarmTitle">알람</div>
-            <div class="alarm-message" id="alarmMessage">메시지</div>
-            <button class="alarm-confirm-btn" onclick="closeAlarmNotification()">확인</button>
+            <div class="alarm-title" id="alarmTitle" data-i18n="alarm">알람</div>
+            <div class="alarm-message" id="alarmMessage" data-i18n="alarmMessage">메시지</div>
+            <button class="alarm-confirm-btn" onclick="closeAlarmNotification()">
+                <span data-i18n="confirm">확인</span>
+            </button>
         </div>
     </div>
     <!-- Firebase SDK들 (CDN) -->

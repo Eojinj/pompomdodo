@@ -1,3 +1,126 @@
+// ============ 다국어 지원 ============
+const translations = {
+    ko: {
+        title: '폼폼도도',
+        nickname: '닉네임',
+        nicknamePlaceholder: '닉네임을 입력하세요',
+        goal: '오늘의 목표',
+        goalPlaceholder: '예: 수학 과제 3페이지 완료하기',
+        language: '언어 설정',
+        pomodoroType: '뽀모도로 유형',
+        basic: '기본형',
+        'basic-desc': '25분 작업 / 5분 휴식',
+        focus: '집중형',
+        'focus-desc': '50분 작업 / 10분 휴식',
+        start: '시작하기',
+        home: '홈',
+        working: '작업 중',
+        breaking: '휴식 중',
+        people: '명',
+        chatWelcome: '채팅방에 입장했습니다',
+        chatPlaceholder: '메시지를 입력하세요...',
+        chatLimitReached: '채팅 횟수를 모두 사용했습니다',
+        settings: '설정',
+        change: '변경',
+        themeSettings: '테마 설정',
+        lightMode: '라이트 모드',
+        darkMode: '다크 모드',
+        todoTitle: '📝 쉬는 시간 TODO',
+        todoInfo: '💡 쉬는 시간이 되면 자동으로 표시됩니다',
+        todoPlaceholder: '할 일을 입력하고 엔터를 누르세요...',
+        alarm: '알람',
+        alarmMessage: '메시지',
+        confirm: '확인',
+        breakStart: '🎉 휴식 시간입니다!',
+        breakMessage: '잠시 쉬어가세요. 스트레칭하고 눈을 쉬게 해주세요.',
+        workStart: '💪 작업 시간입니다!',
+        workMessage: '다시 집중할 시간입니다. 화이팅!',
+        nextBreak: '휴식',
+        nextWork: '작업',
+        nicknameAlert: '닉네임을 입력해주세요!',
+        nicknameChanged: '닉네임이 변경되었습니다!',
+        goalChanged: '목표가 변경되었습니다!',
+        nicknameChangedTo: '님이 (으)로 닉네임을 변경했습니다',
+        homeConfirm: '메인 화면으로 돌아가시겠습니까?',
+        chatLimitAlert: '채팅 횟수 제한에 도달했습니다!'
+    },
+    en: {
+        title: 'PomPomDoDo',
+        nickname: 'Nickname',
+        nicknamePlaceholder: 'Enter your nickname',
+        goal: "Today's Goal",
+        goalPlaceholder: 'e.g., Complete 3 pages of math homework',
+        language: 'Language Settings',
+        pomodoroType: 'Pomodoro Type',
+        basic: 'Basic',
+        'basic-desc': '25min work / 5min break',
+        focus: 'Focus',
+        'focus-desc': '50min work / 10min break',
+        start: 'Start',
+        home: 'Home',
+        working: 'Working',
+        breaking: 'Break Time',
+        people: ' people',
+        chatWelcome: 'Welcome to the chat room',
+        chatPlaceholder: 'Type a message...',
+        chatLimitReached: 'Chat limit reached',
+        settings: 'Settings',
+        change: 'Change',
+        themeSettings: 'Theme Settings',
+        lightMode: 'Light Mode',
+        darkMode: 'Dark Mode',
+        todoTitle: '📝 Break Time TODO',
+        todoInfo: '💡 Automatically shown during break time',
+        todoPlaceholder: 'Enter a task and press Enter...',
+        alarm: 'Alarm',
+        alarmMessage: 'Message',
+        confirm: 'OK',
+        breakStart: '🎉 Break Time!',
+        breakMessage: 'Take a break. Stretch and rest your eyes.',
+        workStart: '💪 Work Time!',
+        workMessage: "Time to focus again. Let's go!",
+        nextBreak: 'Break',
+        nextWork: 'Work',
+        nicknameAlert: 'Please enter a nickname!',
+        nicknameChanged: 'Nickname changed!',
+        goalChanged: 'Goal changed!',
+        nicknameChangedTo: ' changed nickname to ',
+        homeConfirm: 'Return to home screen?',
+        chatLimitAlert: 'Chat limit reached!'
+    }
+};
+
+let currentLanguage = 'ko';
+
+// 언어 변경 함수
+function changeLanguage(lang) {
+    currentLanguage = lang;
+    userSettings.language = lang;
+    saveUserSettings();
+    
+    // 모든 data-i18n 속성을 가진 요소 업데이트
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (translations[lang][key]) {
+            element.textContent = translations[lang][key];
+        }
+    });
+    
+    // placeholder 업데이트
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-i18n-placeholder');
+        if (translations[lang][key]) {
+            element.placeholder = translations[lang][key];
+        }
+    });
+    
+    // 테마 버튼 텍스트 업데이트
+    updateThemeUI(document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    
+    // 채팅 카운트 업데이트
+    updateChatCountDisplay();
+}
+
 // ============ Firebase 초기화 ============
 let firebaseInitialized = false;
 let database = null;
@@ -54,6 +177,7 @@ const userSettings = {
     userCharacter: '🐠',
     userColor: '#4DD0E1',
     theme: 'light', // 테마 설정 추가
+    language: 'ko', // 언어 설정 추가
     lastSaved: null
 };
 
@@ -94,6 +218,12 @@ function loadUserSettings() {
             } else {
                 document.body.classList.remove('dark-mode');
                 updateThemeUI('light');
+            }
+            
+            // 언어 적용
+            if (userSettings.language) {
+                currentLanguage = userSettings.language;
+                changeLanguage(currentLanguage);
             }
             
             // UI에 반영 (닉네임과 목표는 제외)
@@ -321,6 +451,9 @@ document.querySelectorAll('.option-btn').forEach(btn => {
             userSettings.selectedServer = selectedServer;
             saveUserSettings();
         }
+        if (this.dataset.language) {
+            changeLanguage(this.dataset.language);
+        }
         if (this.dataset.pomodoro) {
             selectedPomodoroType = parseInt(this.dataset.pomodoro);
             userSettings.selectedPomodoroType = selectedPomodoroType;
@@ -346,7 +479,7 @@ function startGame() {
     const nickname = nicknameInput.value.trim();
     
     if (nickname === '') {
-        alert('닉네임을 입력해주세요!');
+        alert(translations[currentLanguage].nicknameAlert);
         nicknameInput.focus();
         return;
     }
@@ -1123,10 +1256,10 @@ function updateThemeUI(theme) {
     if (themeIcon && themeText) {
         if (theme === 'dark') {
             themeIcon.textContent = '🌙';
-            themeText.textContent = '다크 모드';
+            themeText.textContent = translations[currentLanguage].darkMode;
         } else {
             themeIcon.textContent = '☀️';
-            themeText.textContent = '라이트 모드';
+            themeText.textContent = translations[currentLanguage].lightMode;
         }
     }
 }
