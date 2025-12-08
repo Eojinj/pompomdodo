@@ -283,17 +283,6 @@ class Character {
     draw() {
         const waveX = Math.sin(this.waveOffset) * this.waveAmplitude;
         const waveY = Math.cos(this.waveOffset * 0.5) * (this.waveAmplitude * 0.5);
-        
-        ctx.fillStyle = this.color;
-        ctx.beginPath();
-        ctx.arc(
-            this.x + this.size/2 + waveX, 
-            this.y + this.size/2 + waveY, 
-            this.size/2, 
-            0, 
-            Math.PI * 2
-        );
-        ctx.fill();
 
         if (this.isSleeping) {
             // 자는 중에는 이모티콘 표시
@@ -314,12 +303,21 @@ class Character {
             
             if (this.imageLoaded && this.emoji === '🐠') {
                 // 🐠 이모티콘이면 이미지 사용
+                // 이미지의 원본 비율 유지
+                const imgWidth = fishImage.width;
+                const imgHeight = fishImage.height;
+                const aspectRatio = imgWidth / imgHeight;
+                
+                // 크기 조정 (높이 기준으로 너비 계산)
+                const drawHeight = this.size;
+                const drawWidth = drawHeight * aspectRatio;
+                
                 ctx.drawImage(
                     fishImage, 
-                    -this.size/2, 
-                    -this.size/2, 
-                    this.size, 
-                    this.size
+                    -drawWidth/2, 
+                    -drawHeight/2, 
+                    drawWidth, 
+                    drawHeight
                 );
             } else {
                 // 다른 이모티콘은 텍스트로 표시
