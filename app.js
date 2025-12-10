@@ -306,11 +306,16 @@ let fishCollectionOpen = false;
 const allFish = [
     { id: 'basicFish', name: '기본 물고기', nameEn: 'Basic Fish', image: 'images/basicFish.png', unlocked: true },
     { id: 'bluehornFish', name: '파란뿔 물고기', nameEn: 'Blue Horn Fish', image: 'images/bluehornFish.png', unlocked: false },
-    { id: 'bluewigFish', name: '파란지느러미 물고기', nameEn: 'Blue Wig Fish', image: 'images/bluewigFish.png', unlocked: false },
+    { id: 'bluewigFish', name: '파란 가발 물고기', nameEn: 'Blue Wig Fish', image: 'images/bluewigFish.png', unlocked: false },
     { id: 'rainbowhornFish', name: '무지개뿔 물고기', nameEn: 'Rainbow Horn Fish', image: 'images/rainbowhornFish.png', unlocked: false },
     { id: 'redhornFish', name: '빨간뿔 물고기', nameEn: 'Red Horn Fish', image: 'images/redhornFish.png', unlocked: false },
     { id: 'santaFish', name: '산타 물고기', nameEn: 'Santa Fish', image: 'images/santaFish.png', unlocked: false },
-    { id: 'twintailFish', name: '쌍꼬리 물고기', nameEn: 'Twin Tail Fish', image: 'images/twintailFIish.png', unlocked: false }
+    { id: 'twintailFish', name: '양갈래 물고기', nameEn: 'Twin Tail Fish', image: 'images/twintailFIish.png', unlocked: false },
+    { id: 'blueflowerfish', name: '파란꽃 스티커 물고기', nameEn: 'Blue Flower Sticker Fish', image: 'images/blueflowerFIish.png', unlocked: false },
+    { id: 'redflowerfish', name: '빨간꽃 스티커 물고기', nameEn: 'Red Flower Sticker Fish', image: 'images/redflowerFIish.png', unlocked: false },
+    { id: 'yellowflowerfish', name: '노란꽃 스티커 물고기', nameEn: 'Yellow Flower Sticker Fish', image: 'images/yellowflowerFIish.png', unlocked: false },
+    { id: 'purpleflowerfish', name: '보라꽃 스티커 물고기', nameEn: 'Purple Flower Sticker Fish', image: 'images/purpleflowerFIish.png', unlocked: false }
+   
 ];
 let unlockedFish = ['basicFish']; // 기본 물고기는 처음부터 해금
 
