@@ -152,20 +152,135 @@ function initializeFirebase() {
 }
 
 // ============ 사용자 식별 시스템 ============
-// 사용자 고유 ID 생성 또는 불러오기
-function getOrCreateUserId() {
-    let userId = localStorage.getItem('userId');
-    if (!userId) {
-        // 고유 ID 생성: 타임스탬프 + 랜덤 문자열
-        userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('userId', userId);
+
+// 아직 결정 안 된 상태로 시작
+let userId = null;
+
+// 필요할 때만 게스트용 ID 만들어 쓰는 함수
+function getOrCreateGuestId() {
+    let guestId = localStorage.getItem('guestUserId');
+    if (!guestId) {
+        guestId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('guestUserId', guestId);
     }
-    return userId;
+    return guestId;
 }
 
-// 사용자 ID 초기화 (내부적으로만 사용, 사용자에게는 보이지 않음)
-const userId = getOrCreateUserId();
-// 서버 연동 시 이 ID를 사용하여 사용자를 식별합니다
+// 로그인 UI 업데이트 함수
+function updateLoginUI(isLoggedIn, user) {
+    const loginBtn = document.getElementById('googleLoginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const loginInfo = document.getElementById('loginInfo');
+
+    if (!loginBtn || !logoutBtn || !loginInfo) return;
+
+    if (isLoggedIn && user) {
+        loginBtn.style.display = 'none';
+        logoutBtn.style.display = 'inline-block';
+        const name = user.displayName || (user.email ? user.email.split('@')[0] : '로그인 유저');
+        loginInfo.textContent = `로그인: ${name}`;
+    } else {
+        loginBtn.style.display = 'inline-block';
+        logoutBtn.style.display = 'none';
+        loginInfo.textContent = '게스트 모드';
+    }
+}
+
+
+// ============ 로그인 확인 시스템 ============
+let currentFirebaseUser = null; // auth 유저 객체 보관용
+
+function setupAuthObserver() {
+    if (!firebaseInitialized) return;
+
+    firebase.auth().onAuthStateChanged((user) => {
+        currentFirebaseUser = user;
+
+        if (user) {
+            // 로그인 상태
+            console.log('로그인 됨:', user);
+
+            // userId를 Firebase uid로 사용
+            userId = user.uid;
+
+            // 닉네임 업데이트 (displayName 없으면 이메일 앞부분 사용)
+            const displayName = user.displayName || (user.email ? user.email.split('@')[0] : null);
+            if (displayName) {
+                userName = displayName;
+                userSettings.userName = displayName;
+                saveUserSettings();
+
+                const nicknameInput = document.getElementById('nicknameInput');
+                if (nicknameInput) nicknameInput.value = displayName;
+            }
+
+            // 이미 서버에 연결된 상태라면 다시 연결해서 userId 반영
+            if (currentServerRef) {
+                disconnectFromServer();
+                connectToServer();
+            }
+
+            // UI 쪽에 "로그인/로그아웃" 상태 표시 (추후 아래에서 설명)
+            updateLoginUI(true, user);
+        } else {
+            // 로그아웃 or 비로그인 상태
+            console.log('로그아웃 상태(또는 처음 접속)');
+
+            // 게스트용 userId 사용
+            userId = getOrCreateGuestId();
+
+            // 서버 재연결
+            if (currentServerRef) {
+                disconnectFromServer();
+                connectToServer();
+            }
+
+            updateLoginUI(false, null);
+        }
+    });
+}
+
+// 구글 로그인 기능
+function loginWithGoogle() {
+    if (!firebaseInitialized) {
+        alert('Firebase가 초기화되지 않았습니다.');
+        return;
+    }
+
+    const provider = new firebase.auth.GoogleAuthProvider();
+    // 한국 기준 계정 선택 팝업 강제
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    firebase.auth().signInWithPopup(provider)
+        .then((result) => {
+            // onAuthStateChanged에서 나머지 처리리
+            console.log('로그인 성공:', result.user);
+        })
+        .catch((error) => {
+            if (error.code === 'auth/popup-closed-by-user' ||
+                error.code === 'auth/cancelled-popup-request') {
+                console.log('사용자가 로그인 팝업을 닫았습니다.');
+                return;
+            }
+
+            console.error('로그인 실패:', error);
+            alert('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
+        });
+}
+
+// 로그아웃 기능
+function logout() {
+    if (!firebaseInitialized) {
+        return;
+    }
+    firebase.auth().signOut()
+        .then(() => {
+            console.log('로그아웃 완료');
+        })
+        .catch((error) => {
+            console.error('로그아웃 실패:', error);
+        });
+}
 
 // ============ 설정 저장/불러오기 시스템 ============
 // 저장할 설정 객체
@@ -680,6 +795,12 @@ function connectToServer() {
         return;
     }
     
+    // userId가 비어 있으면 게스트 ID 보정
+    if (!userId) {
+        console.warn('userId가 아직 설정되지 않아 게스트 ID를 사용합니다.');
+        userId = getOrCreateGuestId();
+    }
+
     const serverId = `server${selectedServer}`;
     currentServerRef = database.ref(`servers/${serverId}`);
     usersRef = currentServerRef.child('users');
@@ -1471,6 +1592,13 @@ window.addEventListener('DOMContentLoaded', () => {
     // Firebase 초기화
     initializeFirebase();
     
+    // Auth 상태 감시 시작
+    if (firebaseInitialized) {
+        setupAuthObserver();
+    } else {
+        // Firebase 안 쓰는 로컬 모드면 게스트 ID로 고정
+        userId = getOrCreateGuestId();
+    }   
     // 사용자 설정 불러오기 (페이지 로드 시)
     loadUserSettings();
     
@@ -1536,4 +1664,11 @@ window.addEventListener('DOMContentLoaded', () => {
             saveUserSettings();
         });
     });
+    // 로그인 버튼 클릭 이벤트 리스너
+    const loginBtn = document.getElementById('googleLoginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    if (loginBtn) loginBtn.addEventListener('click', loginWithGoogle);
+    if (logoutBtn) logoutBtn.addEventListener('click', logout);
+    
 })
