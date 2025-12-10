@@ -44,11 +44,11 @@
                 <div class="option-buttons">
                     <div class="option-btn selected" data-language="ko">
                         한국어<br>
-                        <small>Korean</small>
+                        <small>Korean (KST)</small>
                     </div>
                     <div class="option-btn" data-language="en">
                         English<br>
-                        <small>영어</small>
+                        <small>영어 (EST)</small>
                     </div>
                 </div>
             </div>
@@ -92,6 +92,7 @@
             <div class="info-section">
                 <div id="nextBreak">--:--</div>
                 <div><span id="onlineCount">1</span><span data-i18n="people">명</span></div>
+                <button class="fish-collection-btn" onclick="toggleFishCollection()" title="물고기 도감">🐠</button>
                 <button class="settings-toggle-top" onclick="toggleSettings()">⚙️</button>
             </div>
         </div>
@@ -116,7 +117,6 @@
                             placeholder="메시지를 입력하세요..."
                             onkeypress="handleChatKeypress(event)"
                         >
-                        <button class="chat-send" onclick="sendMessage()">➤</button>
                     </div>
                 </div>
             </div>
@@ -217,8 +217,32 @@
                 <span data-i18n="confirm">확인</span>
             </button>
         </div>
+
+        <!-- 물고기 도감 모달 -->
+        <div class="fish-collection-overlay" id="fishCollectionOverlay" onclick="toggleFishCollection()"></div>
+        <div class="fish-collection-panel" id="fishCollectionPanel">
+            <div class="fish-collection-header">
+                <span data-i18n="fishCollection">🐠 물고기 도감</span>
+                <button class="close-fish-collection" onclick="toggleFishCollection()">×</button>
+            </div>
+            
+            <div class="fish-collection-content">
+                <div class="fish-unlock-section">
+                    <button class="fish-unlock-btn" onclick="unlockRandomFish()">
+                        <span data-i18n="unlockFish">🎁 랜덤 물고기 3마리 받기</span>
+                    </button>
+                    <div class="fish-unlock-info">
+                        <span data-i18n="fishUnlockInfo">💡 후원 기능은 곧 추가됩니다</span>
+                    </div>
+                </div>
+                
+                <div class="fish-grid" id="fishGrid">
+                    <!-- 물고기 아이템들이 여기에 추가됩니다 -->
+                </div>
+            </div>
+        </div>
     </div>
-    <!-- Firebase SDK들 (CDN) -->
+    <!-- Firebase SDKs (CDN) -->
     <script src="https://www.gstatic.com/firebasejs/12.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.6.0/firebase-database-compat.js"></script>
 

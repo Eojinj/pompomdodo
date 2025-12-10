@@ -8,4 +8,3 @@ window.firebaseConfig = {
     appId: "1:589657806472:web:f33db87042ba2d6880713d",
     measurementId: "G-1DBG0KERKJ"
   };
-  

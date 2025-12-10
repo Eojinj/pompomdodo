@@ -42,7 +42,14 @@ const translations = {
         goalChanged: '목표가 변경되었습니다!',
         nicknameChangedTo: '님이 (으)로 닉네임을 변경했습니다',
         homeConfirm: '메인 화면으로 돌아가시겠습니까?',
-        chatLimitAlert: '채팅 횟수 제한에 도달했습니다!'
+        chatLimitAlert: '채팅 횟수 제한에 도달했습니다!',
+        todoCompleted: '🎉 휴식 TODO 완료!',
+        fishCollection: '🐠 물고기 도감',
+        unlockFish: '🎁 랜덤 물고기 3마리 받기',
+        fishUnlockInfo: '💡 후원 기능은 곧 추가됩니다',
+        fishUnlocked: '새로운 물고기를 획득했습니다!',
+        fishSelected: '물고기를 선택했습니다!',
+        fishLocked: '이 물고기는 아직 잠겨있습니다 🔒'
     },
     en: {
         title: 'PomPomDoDo',
@@ -86,16 +93,33 @@ const translations = {
         goalChanged: 'Goal changed!',
         nicknameChangedTo: ' changed nickname to ',
         homeConfirm: 'Return to home screen?',
-        chatLimitAlert: 'Chat limit reached!'
+        chatLimitAlert: 'Chat limit reached!',
+        todoCompleted: '🎉 Break TODO Completed!',
+        fishCollection: '🐠 Fish Collection',
+        unlockFish: '🎁 Get 3 Random Fish',
+        fishUnlockInfo: '💡 Donation feature coming soon',
+        fishUnlocked: 'New fish unlocked!',
+        fishSelected: 'Fish selected!',
+        fishLocked: 'This fish is locked 🔒'
     }
 };
 
 let currentLanguage = 'ko';
+let currentTimezone = 'Asia/Seoul'; // 기본값: 한국 시간
 
 // 언어 변경 함수
 function changeLanguage(lang) {
     currentLanguage = lang;
     userSettings.language = lang;
+    
+    // 언어에 따라 시간대 설정
+    if (lang === 'ko') {
+        currentTimezone = 'Asia/Seoul';
+    } else if (lang === 'en') {
+        currentTimezone = 'America/New_York'; // EST/EDT
+    }
+    userSettings.timezone = currentTimezone;
+    
     saveUserSettings();
     
     // 모든 data-i18n 속성을 가진 요소 업데이트
@@ -128,9 +152,8 @@ let currentServerRef = null;
 let usersRef = null;
 let messagesRef = null;
 let userRef = null;
-let connectedRef = null;            // Firebase 연결 상태(.info/connected)
-let beforeUnloadHandlerAdded = false; // beforeunload 중복 등록 방지
-
+let connectedRef = null;
+let beforeUnloadHandlerAdded = false;
 
 // Firebase 초기화 함수
 function initializeFirebase() {
@@ -152,23 +175,18 @@ function initializeFirebase() {
 }
 
 // ============ 사용자 식별 시스템 ============
-// 사용자 고유 ID 생성 또는 불러오기
 function getOrCreateUserId() {
     let userId = localStorage.getItem('userId');
     if (!userId) {
-        // 고유 ID 생성: 타임스탬프 + 랜덤 문자열
         userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         localStorage.setItem('userId', userId);
     }
     return userId;
 }
 
-// 사용자 ID 초기화 (내부적으로만 사용, 사용자에게는 보이지 않음)
 const userId = getOrCreateUserId();
-// 서버 연동 시 이 ID를 사용하여 사용자를 식별합니다
 
 // ============ 설정 저장/불러오기 시스템 ============
-// 저장할 설정 객체
 const userSettings = {
     selectedServer: '1',
     selectedPomodoroType: 25,
@@ -176,8 +194,9 @@ const userSettings = {
     sessionGoal: '',
     userCharacter: '🐠',
     userColor: '#4DD0E1',
-    theme: 'light', // 테마 설정 추가
-    language: 'ko', // 언어 설정 추가
+    theme: 'light',
+    language: 'ko',
+    timezone: 'Asia/Seoul',
     lastSaved: null
 };
 
@@ -185,8 +204,6 @@ const userSettings = {
 function saveUserSettings() {
     userSettings.lastSaved = new Date().toISOString();
     localStorage.setItem('userSettings', JSON.stringify(userSettings));
-    // 디버깅용 로그 (필요시 주석 해제)
-    // console.log('사용자 설정이 저장되었습니다:', userSettings);
 }
 
 // 설정 불러오기 함수
@@ -195,21 +212,24 @@ function loadUserSettings() {
     if (saved) {
         try {
             const loaded = JSON.parse(saved);
-            // 저장된 설정을 현재 설정에 적용
             Object.assign(userSettings, loaded);
             
-            // 전역 변수에 적용
             selectedServer = userSettings.selectedServer;
             selectedPomodoroType = userSettings.selectedPomodoroType;
             WORK_DURATION = userSettings.selectedPomodoroType === 25 ? 25 : 50;
             BREAK_DURATION = userSettings.selectedPomodoroType === 25 ? 5 : 10;
             CYCLE_DURATION = userSettings.selectedPomodoroType === 25 ? 30 : 60;
-            maxChatCount = userSettings.selectedPomodoroType === 25 ? 5 : 10; // 채팅 횟수 설정
+            maxChatCount = userSettings.selectedPomodoroType === 25 ? 5 : 10;
             
             userName = userSettings.userName || '익명' + Math.floor(Math.random() * 1000);
             sessionGoal = userSettings.sessionGoal || '';
             userCharacter = userSettings.userCharacter || '🐠';
             userColor = userSettings.userColor || '#4DD0E1';
+            
+            // 시간대 설정
+            if (userSettings.timezone) {
+                currentTimezone = userSettings.timezone;
+            }
             
             // 테마 적용
             if (userSettings.theme === 'dark') {
@@ -226,35 +246,27 @@ function loadUserSettings() {
                 changeLanguage(currentLanguage);
             }
             
-            // UI에 반영 (닉네임과 목표는 제외)
             applySettingsToUI();
-            
-            // 디버깅용 로그 (필요시 주석 해제)
-            // console.log('사용자 설정이 복원되었습니다:', userSettings);
         } catch (e) {
             console.error('설정 불러오기 실패:', e);
         }
     } else {
-        // 기본값 사용
         userName = '익명' + Math.floor(Math.random() * 1000);
     }
 }
 
 // UI에 설정 적용
 function applySettingsToUI() {
-    // 닉네임은 저장되어 있고 기본값이 아닐 때만 자동으로 불러오기
     const nicknameInput = document.getElementById('nicknameInput');
     if (nicknameInput && userName && !userName.startsWith('익명')) {
         nicknameInput.value = userName;
     }
     
-    // 목표는 저장되어 있으면 자동으로 불러오기
     const goalInput = document.getElementById('sessionGoalInput');
     if (goalInput && sessionGoal) {
         goalInput.value = sessionGoal;
     }
     
-    // 서버 선택 버튼
     document.querySelectorAll('.option-btn[data-server]').forEach(btn => {
         btn.classList.remove('selected');
         if (btn.dataset.server === selectedServer) {
@@ -262,7 +274,6 @@ function applySettingsToUI() {
         }
     });
     
-    // 뽀모도로 타입 버튼
     document.querySelectorAll('.option-btn[data-pomodoro]').forEach(btn => {
         btn.classList.remove('selected');
         if (parseInt(btn.dataset.pomodoro) === selectedPomodoroType) {
@@ -289,6 +300,19 @@ let memoOpen = false;
 let todoItems = [];
 let lastStatus = null;
 let memoNotificationShown = false;
+
+// 물고기 도감 관련
+let fishCollectionOpen = false;
+const allFish = [
+    { id: 'basicFish', name: '기본 물고기', nameEn: 'Basic Fish', image: 'images/basicFish.png', unlocked: true },
+    { id: 'bluehornFish', name: '파란뿔 물고기', nameEn: 'Blue Horn Fish', image: 'images/bluehornFish.png', unlocked: false },
+    { id: 'bluewigFish', name: '파란지느러미 물고기', nameEn: 'Blue Wig Fish', image: 'images/bluewigFish.png', unlocked: false },
+    { id: 'rainbowhornFish', name: '무지개뿔 물고기', nameEn: 'Rainbow Horn Fish', image: 'images/rainbowhornFish.png', unlocked: false },
+    { id: 'redhornFish', name: '빨간뿔 물고기', nameEn: 'Red Horn Fish', image: 'images/redhornFish.png', unlocked: false },
+    { id: 'santaFish', name: '산타 물고기', nameEn: 'Santa Fish', image: 'images/santaFish.png', unlocked: false },
+    { id: 'twintailFish', name: '쌍꼬리 물고기', nameEn: 'Twin Tail Fish', image: 'images/twintailFIish.png', unlocked: false }
+];
+let unlockedFish = ['basicFish']; // 기본 물고기는 처음부터 해금
 
 // 알람 관련
 let alarmPlaying = false;
@@ -335,7 +359,6 @@ class Character {
         
         this.changeDirectionTimer = Math.floor(Math.random() * 180) + 120;
         
-        // 이미지가 로드되면 플래그 설정
         if (fishImage.complete) {
             this.imageLoaded = true;
         } else {
@@ -392,30 +415,24 @@ class Character {
         const waveY = Math.cos(this.waveOffset * 0.5) * (this.waveAmplitude * 0.5);
 
         if (this.isSleeping) {
-            // 자는 중에는 이모티콘 표시
             ctx.font = `${this.size}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText('💤', this.x + this.size/2 + waveX, this.y + this.size/2 + waveY);
         } else {
-            // 깨어있을 때는 이미지 또는 이모티콘 표시
             ctx.save();
             ctx.translate(this.x + this.size/2 + waveX, this.y + this.size/2 + waveY);
             
             const vx = Math.cos(this.angle);
-            // 물고기가 오른쪽으로 갈 때 반전
             if (vx > 0) {
                 ctx.scale(-1, 1);
             }
             
             if (this.imageLoaded && this.emoji === '🐠') {
-                // 🐠 이모티콘이면 이미지 사용
-                // 이미지의 원본 비율 유지
                 const imgWidth = fishImage.width;
                 const imgHeight = fishImage.height;
                 const aspectRatio = imgWidth / imgHeight;
                 
-                // 크기 2배로 증가
                 const drawHeight = this.size * 2;
                 const drawWidth = drawHeight * aspectRatio;
                 
@@ -427,7 +444,6 @@ class Character {
                     drawHeight
                 );
             } else {
-                // 다른 이모티콘은 텍스트로 표시
                 ctx.font = `${this.size}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
@@ -461,12 +477,12 @@ document.querySelectorAll('.option-btn').forEach(btn => {
                 WORK_DURATION = 25;
                 BREAK_DURATION = 5;
                 CYCLE_DURATION = 30;
-                maxChatCount = 5; // 25분: 5번
+                maxChatCount = 5;
             } else {
                 WORK_DURATION = 50;
                 BREAK_DURATION = 10;
                 CYCLE_DURATION = 60;
-                maxChatCount = 10; // 50분: 10번
+                maxChatCount = 10;
             }
             saveUserSettings();
         }
@@ -491,7 +507,6 @@ function startGame() {
     sessionGoal = goalInput.value.trim();
     userSettings.sessionGoal = sessionGoal;
     
-    // 설정 저장
     saveUserSettings();
     
     document.getElementById('startScreen').style.display = 'none';
@@ -508,34 +523,30 @@ function startGame() {
 
 // 홈으로 돌아가기
 function goToHome() {
-    if (confirm('메인 화면으로 돌아가시겠습니까?')) {
-        // Firebase 연결 해제
+    if (confirm(translations[currentLanguage].homeConfirm)) {
         disconnectFromServer();
         
         document.getElementById('gameScreen').style.display = 'none';
         document.getElementById('startScreen').style.display = 'flex';
         
-        // 저장된 설정으로 입력 필드 복원
         applySettingsToUI();
         
         const chatMessages = document.getElementById('chatMessages');
-        chatMessages.innerHTML = '<div class="system-message">채팅방에 입장했습니다</div>';
+        chatMessages.innerHTML = `<div class="system-message">${translations[currentLanguage].chatWelcome}</div>`;
         
         document.getElementById('chatInput').value = '';
     }
 }
 
 // ============ Firebase 실시간 기능 ============
-// 서버에 연결
 function connectToServer() {
-    // 기존 연결이 있으면 먼저 해제 (중복 방지)
     if (usersRef || messagesRef || connectedRef) {
         disconnectFromServer();
     }
     
     if (!firebaseInitialized || !database) {
         console.log('Firebase가 초기화되지 않아 로컬 모드로 실행됩니다.');
-        updateOnlineCount(1); // 로컬 모드: 1명으로 표시
+        updateOnlineCount(1);
         return;
     }
     
@@ -545,22 +556,17 @@ function connectToServer() {
     messagesRef = currentServerRef.child('messages');
     userRef = usersRef.child(userId);
     
-    // Firebase 연결 상태(.info/connected) 감지
     connectedRef = database.ref('.info/connected');
     connectedRef.on('value', (snapshot) => {
         const connected = snapshot.val();
         if (connected === true) {
-            // 연결되었을 때: onDisconnect로 정리 예약
             if (userRef) {
                 userRef.onDisconnect().remove();
             }
 
-            // 사용자 정보 저장 / 갱신
-            // joinedAt은 처음 한 번만 설정하고, 이후에는 업데이트하지 않음
             userRef.once('value', (userSnapshot) => {
                 const userData = userSnapshot.val();
                 if (!userData || !userData.joinedAt) {
-                    // 처음 입장하는 경우
                     userRef.set({
                         userId: userId,
                         userName: userName,
@@ -569,7 +575,6 @@ function connectToServer() {
                         joinedAt: firebase.database.ServerValue.TIMESTAMP
                     });
                 } else {
-                    // 이미 입장한 경우 (재연결 등) - joinedAt은 유지하고 나머지만 업데이트
                     userRef.update({
                         userId: userId,
                         userName: userName,
@@ -581,26 +586,21 @@ function connectToServer() {
         }
     });
     
-    // 접속자 수 실시간 감지
     usersRef.on('value', (snapshot) => {
         const users = snapshot.val() || {};
         const onlineCount = Object.keys(users).length;
         updateOnlineCount(onlineCount);
     });
     
-    // 메시지 실시간 감지
     messagesRef.limitToLast(50).on('child_added', (snapshot) => {
         const message = snapshot.val();
         const messageId = snapshot.key;
         
-        // 내가 보낸 메시지가 아니고, 아직 표시하지 않은 메시지만 표시
         if (message && message.userId !== userId && !sentMessageIds.has(messageId)) {
             addMessage(message.userName, message.content, false);
         }
     });
     
-    
-    // 페이지 종료 시 사용자 제거 (한 번만 등록)
     if (!beforeUnloadHandlerAdded) {
         window.addEventListener('beforeunload', () => {
             disconnectFromServer();
@@ -609,21 +609,17 @@ function connectToServer() {
     }
 }
 
-// 서버 연결 해제
 function disconnectFromServer() {
-    // presence 연결 상태 리스너 제거
     if (connectedRef) {
         connectedRef.off();
         connectedRef = null;
     }
 
-    // 내 유저 노드 제거
     if (userRef) {
         userRef.remove();
         userRef = null;
     }
 
-    // 리스너 해제
     if (usersRef) {
         usersRef.off();
         usersRef = null;
@@ -636,7 +632,6 @@ function disconnectFromServer() {
     currentServerRef = null;
 }
 
-// 접속자 수 업데이트 (DOM에만 반영)
 function updateOnlineCount(count) {
     const onlineCountElement = document.getElementById('onlineCount');
     if (onlineCountElement) {
@@ -649,10 +644,8 @@ function initGame() {
     characters = [];
     characters.push(new Character(userCharacter, userColor, 1));
     
-    // Firebase 연결
     connectToServer();
     
-    // 채팅 카운트 표시 초기화
     updateChatCountDisplay();
     
     animate();
@@ -670,7 +663,6 @@ function resizeCanvas() {
 
 // 애니메이션 루프
 function animate() {
-    // 테마에 따라 그라디언트 색상 변경
     const isDark = document.body.classList.contains('dark-mode');
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
     
@@ -687,7 +679,6 @@ function animate() {
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 물방울 개수 줄이고 투명도 낮춤
     ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.3)';
     for (let i = 0; i < 3; i++) {
         const x = Math.random() * canvas.width;
@@ -706,11 +697,35 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
+// 선택된 시간대의 현재 시간 가져오기
+function getCurrentTimeInTimezone() {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: currentTimezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+    
+    const parts = formatter.formatToParts(now);
+    const getPart = (type) => parts.find(p => p.type === type).value;
+    
+    return {
+        hours: parseInt(getPart('hour')),
+        minutes: parseInt(getPart('minute')),
+        seconds: parseInt(getPart('second'))
+    };
+}
+
 // 타이머 로직
 function getCurrentStatus() {
-    const now = new Date();
-    const minutes = now.getMinutes();
-    const seconds = now.getSeconds();
+    const time = getCurrentTimeInTimezone();
+    const minutes = time.minutes;
+    const seconds = time.seconds;
     
     const cycleMinute = minutes % CYCLE_DURATION;
     const totalSeconds = cycleMinute * 60 + seconds;
@@ -732,22 +747,37 @@ function getCurrentStatus() {
 }
 
 function getNextTransitionTime() {
-    const now = new Date();
-    const minutes = now.getMinutes();
+    const time = getCurrentTimeInTimezone();
+    const minutes = time.minutes;
     const cycleMinute = minutes % CYCLE_DURATION;
+    
+    // 선택된 시간대로 Date 객체 생성
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: currentTimezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
     
     if (cycleMinute < WORK_DURATION) {
         const nextBreakMinute = Math.floor(minutes / CYCLE_DURATION) * CYCLE_DURATION + WORK_DURATION;
-        const nextBreak = new Date(now);
-        nextBreak.setMinutes(nextBreakMinute);
-        nextBreak.setSeconds(0);
-        return { type: 'break', time: nextBreak };
+        return { 
+            type: 'break', 
+            hours: time.hours,
+            minutes: nextBreakMinute % 60
+        };
     } else {
         const nextWorkMinute = (Math.floor(minutes / CYCLE_DURATION) + 1) * CYCLE_DURATION;
-        const nextWork = new Date(now);
-        nextWork.setMinutes(nextWorkMinute);
-        nextWork.setSeconds(0);
-        return { type: 'work', time: nextWork };
+        return { 
+            type: 'work',
+            hours: nextWorkMinute >= 60 ? (time.hours + 1) % 24 : time.hours,
+            minutes: nextWorkMinute % 60
+        };
     }
 }
 
@@ -767,33 +797,29 @@ function updateUI() {
     
     if (status.isWorking) {
         statusIndicator.className = 'status-indicator status-working';
-        statusText.textContent = '작업 중';
+        statusText.textContent = translations[currentLanguage].working;
         timerDisplay.style.color = 'white';
         
         characters.forEach(char => char.isSleeping = false);
         
-        const breakTime = nextTransition.time;
         document.getElementById('nextBreak').textContent = 
-            `${String(breakTime.getHours()).padStart(2, '0')}:${String(breakTime.getMinutes()).padStart(2, '0')} 휴식`;
+            `${String(nextTransition.hours).padStart(2, '0')}:${String(nextTransition.minutes).padStart(2, '0')} ${translations[currentLanguage].nextBreak}`;
         
-        // 작업 시작 알람 (휴식에서 작업으로 전환)
         if (lastStatus === false && !memoNotificationShown) {
             showAlarmNotification(false);
             memoNotificationShown = true;
-            resetChatCount(); // 작업 시작 시 채팅 카운트 리셋
+            resetChatCount();
         }
     } else {
         statusIndicator.className = 'status-indicator status-breaking';
-        statusText.textContent = '휴식 중';
+        statusText.textContent = translations[currentLanguage].breaking;
         timerDisplay.style.color = 'white';
         
         characters.forEach(char => char.isSleeping = true);
         
-        const workTime = nextTransition.time;
         document.getElementById('nextBreak').textContent = 
-            `${String(workTime.getHours()).padStart(2, '0')}:${String(workTime.getMinutes()).padStart(2, '0')} 작업`;
+            `${String(nextTransition.hours).padStart(2, '0')}:${String(nextTransition.minutes).padStart(2, '0')} ${translations[currentLanguage].nextWork}`;
         
-        // 휴식 시작 알람 (작업에서 휴식으로 전환)
         if (lastStatus === true && !memoNotificationShown) {
             showAlarmNotification(true);
             memoNotificationShown = true;
@@ -812,7 +838,6 @@ function playAlarmSound() {
     
     playAlarmBeep();
     
-    // 15초 후 자동으로 알람 멈춤
     alarmTimeout = setTimeout(() => {
         stopAlarmSound();
     }, 15000);
@@ -821,7 +846,6 @@ function playAlarmSound() {
 function playAlarmBeep() {
     if (!alarmPlaying) return;
     
-    // 첫 번째 비프음
     oscillator = audioContext.createOscillator();
     gainNode = audioContext.createGain();
     
@@ -837,7 +861,6 @@ function playAlarmBeep() {
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + 0.3);
     
-    // 두 번째 비프음
     setTimeout(() => {
         if (!alarmPlaying) return;
         
@@ -856,7 +879,6 @@ function playAlarmBeep() {
         osc2.start(audioContext.currentTime);
         osc2.stop(audioContext.currentTime + 0.3);
         
-        // 2초 후 반복
         setTimeout(() => {
             if (alarmPlaying) {
                 playAlarmBeep();
@@ -892,11 +914,11 @@ function showAlarmNotification(isBreak) {
     const message = document.getElementById('alarmMessage');
     
     if (isBreak) {
-        title.textContent = '🎉 휴식 시간입니다!';
-        message.textContent = '잠시 쉬어가세요. 스트레칭하고 눈을 쉬게 해주세요.';
+        title.textContent = translations[currentLanguage].breakStart;
+        message.textContent = translations[currentLanguage].breakMessage;
     } else {
-        title.textContent = '💪 작업 시간입니다!';
-        message.textContent = '다시 집중할 시간입니다. 화이팅!';
+        title.textContent = translations[currentLanguage].workStart;
+        message.textContent = translations[currentLanguage].workMessage;
     }
     
     const overlay = document.createElement('div');
@@ -922,7 +944,6 @@ function closeAlarmNotification() {
         setTimeout(() => overlay.remove(), 300);
     }
     
-    // 휴식 시간이면 TODO 알림도 표시
     const status = getCurrentStatus();
     if (!status.isWorking) {
         setTimeout(() => {
@@ -965,8 +986,7 @@ function addTodoItem() {
         completed: false
     };
     
-    // 배열 앞에 추가 (상단에 표시)
-    todoItems.unshift(todo);
+    todoItems.push(todo);
     saveTodos();
     renderTodos();
     
@@ -1050,7 +1070,20 @@ function showMemoNotification() {
         checkbox.className = 'todo-checkbox';
         checkbox.onclick = () => {
             toggleTodo(todo.id);
-            showMemoNotification();
+            
+            // 체크 후 남은 미완료 TODO 확인
+            const remainingTodos = todoItems.filter(t => !t.completed);
+            
+            if (remainingTodos.length === 0) {
+                // 모든 TODO 완료 시
+                closeMemoNotification();
+                setTimeout(() => {
+                    alert(translations[currentLanguage].todoCompleted || '🎉 휴식 TODO 완료!');
+                }, 300);
+            } else {
+                // 아직 남은 TODO가 있으면 알림 새로고침
+                showMemoNotification();
+            }
         };
         
         const text = document.createElement('div');
@@ -1062,7 +1095,6 @@ function showMemoNotification() {
         content.appendChild(item);
     });
     
-    // 기존 오버레이가 있는지 확인하고, 없으면 생성
     let overlay = document.getElementById('memoOverlay');
     if (!overlay) {
         overlay = document.createElement('div');
@@ -1089,9 +1121,9 @@ function closeMemoNotification() {
 }
 
 // ============ 채팅 기능 (횟수 제한 추가) ============
-let sentMessageIds = new Set(); // 중복 메시지 방지
-let chatCount = 0; // 현재 세션의 채팅 횟수
-let maxChatCount = 5; // 세션당 최대 채팅 횟수 (25분: 5번, 50분: 10번)
+let sentMessageIds = new Set();
+let chatCount = 0;
+let maxChatCount = 5;
 
 function sendMessage() {
     const input = document.getElementById('chatInput');
@@ -1099,17 +1131,14 @@ function sendMessage() {
     
     if (message === '') return;
     
-    // 채팅 횟수 제한 확인
     if (chatCount >= maxChatCount) {
-        alert(`이번 세션에는 최대 ${maxChatCount}번까지만 채팅할 수 있습니다. 다음 세션을 기다려주세요!`);
+        alert(translations[currentLanguage].chatLimitAlert);
         return;
     }
     
-    // 채팅 횟수 증가
     chatCount++;
     updateChatCountDisplay();
     
-    // Firebase에 메시지 저장
     if (firebaseInitialized && messagesRef) {
         const messageRef = messagesRef.push({
             userId: userId,
@@ -1119,12 +1148,10 @@ function sendMessage() {
             serverId: `server${selectedServer}`
         });
         
-        // 내가 보낸 메시지는 즉시 표시하고 ID 저장 (중복 방지)
         const messageId = messageRef.key;
         sentMessageIds.add(messageId);
         addMessage(userName, message, true);
     } else {
-        // 로컬 모드: 즉시 표시
         addMessage(userName, message, true);
     }
     
@@ -1148,27 +1175,25 @@ function handleChatKeypress(event) {
     }
 }
 
-// 채팅 카운트 표시 업데이트
 function updateChatCountDisplay() {
     const input = document.getElementById('chatInput');
     if (input) {
         const remaining = maxChatCount - chatCount;
         if (remaining > 0) {
-            input.placeholder = `메시지를 입력하세요... (${remaining}/${maxChatCount})`;
+            input.placeholder = `${translations[currentLanguage].chatPlaceholder} (${remaining}/${maxChatCount})`;
         } else {
-            input.placeholder = '채팅 횟수를 모두 사용했습니다';
+            input.placeholder = translations[currentLanguage].chatLimitReached;
             input.disabled = true;
         }
     }
 }
 
-// 세션 전환 시 채팅 카운트 리셋
 function resetChatCount() {
     chatCount = 0;
     const input = document.getElementById('chatInput');
     if (input) {
         input.disabled = false;
-        input.placeholder = `메시지를 입력하세요... (${maxChatCount}/${maxChatCount})`;
+        updateChatCountDisplay();
     }
 }
 
@@ -1191,7 +1216,7 @@ function changeNickname() {
     const newNickname = document.getElementById('nicknameChange').value.trim();
     
     if (newNickname === '') {
-        alert('닉네임을 입력해주세요!');
+        alert(translations[currentLanguage].nicknameAlert);
         return;
     }
     
@@ -1199,10 +1224,8 @@ function changeNickname() {
     userName = newNickname;
     userSettings.userName = userName;
     
-    // 설정 저장
     saveUserSettings();
     
-    // Firebase에 닉네임 업데이트
     if (firebaseInitialized && userRef) {
         userRef.update({ userName: userName });
     }
@@ -1210,11 +1233,11 @@ function changeNickname() {
     const messagesDiv = document.getElementById('chatMessages');
     const systemMsg = document.createElement('div');
     systemMsg.className = 'system-message';
-    systemMsg.textContent = `${oldNickname}님이 ${userName}(으)로 닉네임을 변경했습니다`;
+    systemMsg.textContent = `${oldNickname}${translations[currentLanguage].nicknameChangedTo}${userName}`;
     messagesDiv.appendChild(systemMsg);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
     
-    alert('닉네임이 변경되었습니다!');
+    alert(translations[currentLanguage].nicknameChanged);
 }
 
 function changeGoal() {
@@ -1222,10 +1245,9 @@ function changeGoal() {
     sessionGoal = newGoal;
     userSettings.sessionGoal = sessionGoal;
     
-    // 설정 저장
     saveUserSettings();
     
-    alert('목표가 변경되었습니다!');
+    alert(translations[currentLanguage].goalChanged);
 }
 
 // 테마 전환 함수
@@ -1233,18 +1255,15 @@ function toggleTheme() {
     const isDark = document.body.classList.contains('dark-mode');
     
     if (isDark) {
-        // 라이트 모드로 전환
         document.body.classList.remove('dark-mode');
         userSettings.theme = 'light';
         updateThemeUI('light');
     } else {
-        // 다크 모드로 전환
         document.body.classList.add('dark-mode');
         userSettings.theme = 'dark';
         updateThemeUI('dark');
     }
     
-    // 설정 저장
     saveUserSettings();
 }
 
@@ -1264,13 +1283,122 @@ function updateThemeUI(theme) {
     }
 }
 
+// ============ 물고기 도감 기능 ============
+function toggleFishCollection() {
+    fishCollectionOpen = !fishCollectionOpen;
+    const panel = document.getElementById('fishCollectionPanel');
+    const overlay = document.getElementById('fishCollectionOverlay');
+    
+    if (fishCollectionOpen) {
+        panel.classList.add('open');
+        overlay.classList.add('show');
+        renderFishGrid();
+    } else {
+        panel.classList.remove('open');
+        overlay.classList.remove('show');
+    }
+}
+
+function renderFishGrid() {
+    const grid = document.getElementById('fishGrid');
+    if (!grid) return;
+    
+    grid.innerHTML = '';
+    
+    allFish.forEach(fish => {
+        const isUnlocked = unlockedFish.includes(fish.id);
+        const fishCard = document.createElement('div');
+        fishCard.className = 'fish-card' + (isUnlocked ? '' : ' locked');
+        
+        if (isUnlocked) {
+            fishCard.onclick = () => selectFish(fish);
+        } else {
+            fishCard.onclick = () => {
+                alert(translations[currentLanguage].fishLocked);
+            };
+        }
+        
+        const fishImg = document.createElement('img');
+        fishImg.src = fish.image;
+        fishImg.alt = currentLanguage === 'ko' ? fish.name : fish.nameEn;
+        fishImg.className = 'fish-image';
+        
+        const fishName = document.createElement('div');
+        fishName.className = 'fish-name';
+        fishName.textContent = currentLanguage === 'ko' ? fish.name : fish.nameEn;
+        
+        if (!isUnlocked) {
+            const lockIcon = document.createElement('div');
+            lockIcon.className = 'fish-lock-icon';
+            lockIcon.textContent = '🔒';
+            fishCard.appendChild(lockIcon);
+        }
+        
+        fishCard.appendChild(fishImg);
+        fishCard.appendChild(fishName);
+        grid.appendChild(fishCard);
+    });
+}
+
+function selectFish(fish) {
+    // 선택된 물고기로 캐릭터 변경
+    userCharacter = '🐠'; // 일단 이모티콘은 그대로
+    userSettings.selectedFish = fish.id;
+    saveUserSettings();
+    
+    // 캔버스의 물고기 이미지 업데이트
+    if (characters.length > 0) {
+        characters[0].emoji = '🐠';
+        // 이미지 경로 업데이트를 위해 새로운 Image 객체 생성
+        const newFishImage = new Image();
+        newFishImage.src = fish.image;
+        newFishImage.onload = () => {
+            fishImage.src = fish.image;
+        };
+    }
+    
+    alert(translations[currentLanguage].fishSelected + '\n' + (currentLanguage === 'ko' ? fish.name : fish.nameEn));
+    toggleFishCollection();
+}
+
+function unlockRandomFish() {
+    const lockedFish = allFish.filter(f => !unlockedFish.includes(f.id));
+    
+    if (lockedFish.length === 0) {
+        alert(currentLanguage === 'ko' ? '모든 물고기를 획득했습니다! 🎉' : 'All fish unlocked! 🎉');
+        return;
+    }
+    
+    const toUnlock = Math.min(3, lockedFish.length);
+    const unlocked = [];
+    
+    for (let i = 0; i < toUnlock; i++) {
+        const randomIndex = Math.floor(Math.random() * lockedFish.length);
+        const fish = lockedFish.splice(randomIndex, 1)[0];
+        unlockedFish.push(fish.id);
+        unlocked.push(currentLanguage === 'ko' ? fish.name : fish.nameEn);
+    }
+    
+    saveFishCollection();
+    renderFishGrid();
+    
+    alert(translations[currentLanguage].fishUnlocked + '\n\n' + unlocked.join('\n'));
+}
+
+function saveFishCollection() {
+    localStorage.setItem('unlockedFish', JSON.stringify(unlockedFish));
+}
+
+function loadFishCollection() {
+    const saved = localStorage.getItem('unlockedFish');
+    if (saved) {
+        unlockedFish = JSON.parse(saved);
+    }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
-    // Firebase 초기화
     initializeFirebase();
-    
-    // 사용자 설정 불러오기 (페이지 로드 시)
     loadUserSettings();
-    
-    // TODO 목록 로드
     loadTodos();
+    loadFishCollection();
 })
