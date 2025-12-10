@@ -252,6 +252,8 @@ function loadUserSettings() {
         }
     } else {
         userName = '익명' + Math.floor(Math.random() * 1000);
+        // maxChatCount 기본값 설정
+        maxChatCount = selectedPomodoroType === 25 ? 5 : 10;
     }
 }
 
@@ -323,7 +325,7 @@ let alarmTimeout = null;
 
 // 캔버스 관련
 const canvas = document.getElementById('field');
-const ctx = canvas.getContext('2d');
+const ctx = canvas ? canvas.getContext('2d') : null;
 
 // 사용자 설정
 let userCharacter = '🐠';
@@ -331,19 +333,24 @@ let userColor = '#4DD0E1';
 
 // 캐릭터 배열
 let characters = [];
-
+let localCharacter = null;                 // 내 물고기
+const userCharacters = new Map();          // userId -> Character (원격 유저 물고기)
+let hoveredCharacter = null;               // 현재 마우스가 올려진 물고기
 // 이미지 로딩
 const fishImage = new Image();
 fishImage.src = 'images/basicFish.png';
 
 // 캐릭터 클래스
 class Character {
-    constructor(emoji, color, id) {
+    constructor(emoji, color, id, isLocal = false) {
         this.emoji = emoji;
         this.color = color;
-        this.id = id;
-        this.x = Math.random() * (canvas.width - 50);
-        this.y = Math.random() * (canvas.height - 50);
+        this.id = id;              // userId (또는 임의 id)
+        this.isLocal = isLocal;    // 내 물고기인지 여부
+        const canvasWidth = canvas ? canvas.width : 800;
+        const canvasHeight = canvas ? canvas.height : 600;
+        this.x = Math.random() * (canvasWidth - 50);
+        this.y = Math.random() * (canvasHeight - 50);
         this.size = 40;
         this.isSleeping = false;
         this.imageLoaded = false;
@@ -366,10 +373,56 @@ class Character {
                 this.imageLoaded = true;
             };
         }
+        // 마우스 상호작용 및 이동 관련
+        this.isFrozen = false;      // 오버 중이면 true → update 멈춤
+        this.hasManualTarget = false;
+        this.targetX = null;
+        this.targetY = null;
+        
+        // 말풍선에 쓸 정보들
+        this.goal = '';             // 오늘의 목표
+        this.userName = '';         // 닉네임
+    }
+    
+    // 클릭으로 이동할 타겟 지정 (내 물고기 전용)
+    setTarget(x, y) {
+        this.targetX = x - this.size / 2;
+        this.targetY = y - this.size / 2;
+        this.hasManualTarget = true;
     }
 
     update() {
-        if (this.isSleeping) return;
+        // 휴식 중이거나 오버 중이면 멈춤
+        if (this.isSleeping || this.isFrozen || !canvas) return;
+
+        // 👇 클릭해서 지정한 타겟이 있으면 그쪽으로 이동
+        if (this.isLocal && this.hasManualTarget && this.targetX != null && this.targetY != null) {
+            const cx = this.x + this.size / 2;
+            const cy = this.y + this.size / 2;
+            const dx = this.targetX - cx;
+            const dy = this.targetY - cy;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < 2) {
+                // 거의 도착
+                this.hasManualTarget = false;
+            } else {
+                this.angle = Math.atan2(dy, dx);
+                const vx = Math.cos(this.angle) * this.speed * 1.5;
+                const vy = Math.sin(this.angle) * this.speed * 1.5;
+                this.x += vx;
+                this.y += vy;
+
+                // 벽 처리
+                if (this.x < 20) this.x = 20;
+                if (this.x > canvas.width - this.size - 20) this.x = canvas.width - this.size - 20;
+                if (this.y < 20) this.y = 20;
+                if (this.y > canvas.height - this.size - 20) this.y = canvas.height - this.size - 20;
+
+                this.waveOffset += this.waveSpeed;
+                return; // 랜덤 이동은 스킵
+            }
+        }
 
         this.changeDirectionTimer--;
         if (this.changeDirectionTimer <= 0) {
@@ -411,17 +464,21 @@ class Character {
     }
 
     draw() {
+        if (!canvas || !ctx) return;
+        
         const waveX = Math.sin(this.waveOffset) * this.waveAmplitude;
         const waveY = Math.cos(this.waveOffset * 0.5) * (this.waveAmplitude * 0.5);
+        const centerX = this.x + this.size / 2 + waveX;
+        const centerY = this.y + this.size / 2 + waveY;
 
         if (this.isSleeping) {
             ctx.font = `${this.size}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('💤', this.x + this.size/2 + waveX, this.y + this.size/2 + waveY);
+            ctx.fillText('💤', centerX, centerY);
         } else {
             ctx.save();
-            ctx.translate(this.x + this.size/2 + waveX, this.y + this.size/2 + waveY);
+            ctx.translate(centerX, centerY);
             
             const vx = Math.cos(this.angle);
             if (vx > 0) {
@@ -452,7 +509,91 @@ class Character {
             
             ctx.restore();
         }
+        // 말풍선 (목표 표시)
+        if (this === hoveredCharacter && this.goal) {
+            ctx.save();
+            const text = this.goal;
+
+            ctx.font = '14px Arial';
+            const padding = 8;
+            const textWidth = ctx.measureText(text).width;
+            const boxWidth = textWidth + padding * 2;
+            const boxHeight = 28;
+
+            let boxX = centerX - boxWidth / 2;
+            let boxY = centerY - this.size / 2 - boxHeight - 8;
+
+            // 너무 위로 나가면 조금 내려주기 (선택 사항)
+            if (boxY < 10) boxY = 10;
+
+            // 말풍선 박스
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+
+            // 텍스트
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, boxX + boxWidth / 2, boxY + boxHeight / 2);
+
+            ctx.restore();
+        }
     }
+}
+
+// 마우스 오버 처리
+if (canvas) {
+    canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        let newHover = null;
+
+        for (const char of characters) {
+            const cx = char.x + char.size / 2;
+            const cy = char.y + char.size / 2;
+            const dx = x - cx;
+            const dy = y - cy;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist <= char.size / 2) {
+                newHover = char;
+                break;
+            }
+        }
+
+        if (hoveredCharacter !== newHover) {
+            // 이전 대상 복원
+            if (hoveredCharacter) {
+                hoveredCharacter.isFrozen = false;
+            }
+            hoveredCharacter = newHover;
+
+            // 새 대상 정지
+            if (hoveredCharacter) {
+                hoveredCharacter.isFrozen = true;
+            }
+        }
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+        if (hoveredCharacter) {
+            hoveredCharacter.isFrozen = false;
+            hoveredCharacter = null;
+        }
+    });
+
+    // 클릭해서 내 물고기 이동
+    canvas.addEventListener('click', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        if (localCharacter) {
+            localCharacter.setTarget(x, y);
+        }
+    });
 }
 
 // 시작 화면 이벤트
@@ -566,31 +707,90 @@ function connectToServer() {
 
             userRef.once('value', (userSnapshot) => {
                 const userData = userSnapshot.val();
+                const baseData = {
+                    userId: userId,
+                    userName: userName,
+                    character: userCharacter,
+                    color: userColor,
+                    goal: sessionGoal || ''
+                };
                 if (!userData || !userData.joinedAt) {
                     userRef.set({
-                        userId: userId,
-                        userName: userName,
-                        character: userCharacter,
-                        color: userColor,
+                        ...baseData,
                         joinedAt: firebase.database.ServerValue.TIMESTAMP
                     });
                 } else {
+<<<<<<< HEAD
                     userRef.update({
                         userId: userId,
                         userName: userName,
                         character: userCharacter,
                         color: userColor
                     });
+=======
+                    // 이미 입장한 경우 (재연결 등) - joinedAt은 유지하고 나머지만 업데이트
+                    userRef.update(baseData);
+>>>>>>> 64e5e7ec1c3ec7727b66e5b125ecab0a20e6700e
                 }
             });
         }
     });
     
+<<<<<<< HEAD
+=======
+    // 접속자 수 실시간 감지 + 캐릭터 생성
+>>>>>>> 64e5e7ec1c3ec7727b66e5b125ecab0a20e6700e
     usersRef.on('value', (snapshot) => {
         const users = snapshot.val() || {};
-        const onlineCount = Object.keys(users).length;
-        updateOnlineCount(onlineCount);
+        const userIds = Object.keys(users);
+        updateOnlineCount(userIds.length);
+
+        // 유저 목록 기준으로 물고기 생성/업데이트
+        userIds.forEach((uid) => {
+            const data = users[uid];
+
+            if (uid === userId) {
+                // 내 정보는 localCharacter에 반영만
+                if (localCharacter) {
+                    localCharacter.emoji = data.character || localCharacter.emoji;
+                    localCharacter.color = data.color || localCharacter.color;
+                    localCharacter.goal = data.goal || localCharacter.goal;
+                    localCharacter.userName = data.userName || localCharacter.userName;
+                }
+                return;
+            }
+
+            let char = userCharacters.get(uid);
+            if (!char) {
+                // 새 유저 → 새 물고기 생성
+                char = new Character(
+                    data.character || '🐠',
+                    data.color || '#4DD0E1',
+                    uid,
+                    false
+                );
+                char.goal = data.goal || '';
+                char.userName = data.userName || '';
+                userCharacters.set(uid, char);
+                characters.push(char);
+            } else {
+                // 기존 유저 → 정보만 업데이트
+                char.emoji = data.character || char.emoji;
+                char.color = data.color || char.color;
+                char.goal = data.goal || char.goal;
+                char.userName = data.userName || char.userName;
+            }
+        });
+
+        // 더 이상 없는 유저의 물고기 제거
+        for (const [uid, char] of userCharacters.entries()) {
+            if (!users[uid]) {
+                userCharacters.delete(uid);
+                characters = characters.filter(c => c !== char);
+            }
+        }
     });
+
     
     messagesRef.limitToLast(50).on('child_added', (snapshot) => {
         const message = snapshot.val();
@@ -642,8 +842,19 @@ function updateOnlineCount(count) {
 // 게임 초기화
 function initGame() {
     characters = [];
+<<<<<<< HEAD
     characters.push(new Character(userCharacter, userColor, 1));
     
+=======
+    //characters.push(new Character(userCharacter, userColor, 1));
+    // 내 물고기 생성
+    localCharacter = new Character(userCharacter, userColor, userId, true);
+    localCharacter.goal = sessionGoal || '';
+    localCharacter.userName = userName || '';
+    characters.push(localCharacter);
+
+    // Firebase 연결
+>>>>>>> 64e5e7ec1c3ec7727b66e5b125ecab0a20e6700e
     connectToServer();
     
     updateChatCountDisplay();
@@ -655,6 +866,7 @@ function initGame() {
 
 // 캔버스 크기 조정
 function resizeCanvas() {
+    if (!canvas) return;
     const container = document.querySelector('.field-container');
     if (!container) return;
     canvas.width = container.clientWidth;
@@ -663,6 +875,12 @@ function resizeCanvas() {
 
 // 애니메이션 루프
 function animate() {
+<<<<<<< HEAD
+=======
+    if (!canvas || !ctx) return;
+    
+    // 테마에 따라 그라디언트 색상 변경
+>>>>>>> 64e5e7ec1c3ec7727b66e5b125ecab0a20e6700e
     const isDark = document.body.classList.contains('dark-mode');
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
     
@@ -1245,6 +1463,19 @@ function changeGoal() {
     sessionGoal = newGoal;
     userSettings.sessionGoal = sessionGoal;
     
+<<<<<<< HEAD
+=======
+    // 내 물고기에도 적용
+    if (localCharacter) {
+        localCharacter.goal = sessionGoal;
+    }
+
+    // Firebase에도 업데이트
+    if (firebaseInitialized && userRef) {
+        userRef.update({ goal: sessionGoal });
+    }
+    // 설정 저장
+>>>>>>> 64e5e7ec1c3ec7727b66e5b125ecab0a20e6700e
     saveUserSettings();
     
     alert(translations[currentLanguage].goalChanged);
@@ -1400,5 +1631,68 @@ window.addEventListener('DOMContentLoaded', () => {
     initializeFirebase();
     loadUserSettings();
     loadTodos();
+<<<<<<< HEAD
     loadFishCollection();
+=======
+    // 캐릭터 선택 변경
+    const characterSelect = document.getElementById('characterSelect');
+    if (characterSelect) {
+        characterSelect.value = (function() {
+            const map = {
+                '🐠': 'fish',
+                '🐙': 'octopus',
+                '🐢': 'turtle',
+                '🐋': 'whale',
+                '🐬': 'dolphin',
+                '🦀': 'crab'
+            };
+            return map[userCharacter] || 'fish';
+        })();
+
+        characterSelect.addEventListener('change', (e) => {
+            const emojiMap = {
+                'fish': '🐠',
+                'octopus': '🐙',
+                'turtle': '🐢',
+                'whale': '🐋',
+                'dolphin': '🐬',
+                'crab': '🦀'
+            };
+            userCharacter = emojiMap[e.target.value];
+            userSettings.userCharacter = userCharacter;
+
+            if (localCharacter) {
+                localCharacter.emoji = userCharacter;
+            }
+
+            // Firebase에 캐릭터 업데이트
+            if (firebaseInitialized && userRef) {
+                userRef.update({ character: userCharacter });
+            }
+
+            saveUserSettings();
+        });
+    }
+
+    // 색상 변경
+    document.querySelectorAll('.color-option').forEach(option => {
+        option.addEventListener('click', (e) => {
+            document.querySelectorAll('.color-option').forEach(opt => 
+                opt.classList.remove('selected'));
+            e.target.classList.add('selected');
+            userColor = e.target.dataset.color;
+            userSettings.userColor = userColor;
+
+            if (localCharacter) {
+                localCharacter.color = userColor;
+            }
+
+            if (firebaseInitialized && userRef) {
+                userRef.update({ color: userColor });
+            }
+
+            saveUserSettings();
+        });
+    });
+>>>>>>> 64e5e7ec1c3ec7727b66e5b125ecab0a20e6700e
 })
