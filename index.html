@@ -11,7 +11,11 @@
     <!-- 시작 화면 -->
     <div id="startScreen">
         <h1>🐠 <span data-i18n="title">폼폼도도</span></h1>
-        
+        <div id="authArea">
+            <button id="googleLoginBtn">Google로 로그인</button>
+            <button id="logoutBtn" style="display:none;">로그아웃</button>
+            <span id="loginInfo"></span>
+        </div>
         <div class="start-options">
             <div class="option-group">
                 <h3 data-i18n="nickname">닉네임</h3>
@@ -220,8 +224,8 @@
     </div>
     <!-- Firebase SDK들 (CDN) -->
     <script src="https://www.gstatic.com/firebasejs/12.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.6.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.6.0/firebase-database-compat.js"></script>
-
     <!-- window.firebaseConfig 정의 -->
     <script src="firebase-config.js"></script>
     <script src="app.js"></script>
